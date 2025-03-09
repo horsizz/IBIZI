@@ -1,0 +1,98 @@
+{% extends 'albedo/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Профиль пользователя</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.username }}</h5>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    <p><strong>Роль:</strong> {{ user.get_role_display }}</p>
+                    <p><strong>Статус:</strong> 
+                        {% if user.active %}
+                            <span class="badge badge-success">Активен</span>
+                        {% else %}
+                            <span class="badge badge-danger">Заблокирован</span>
+                            <div class="alert alert-warning mt-3">
+                                <i class="fas fa-exclamation-triangle"></i> Ваш аккаунт заблокирован. Вы не можете создавать события и добавлять решения.
+                            </div>
+                        {% endif %}
+                    </p>
+                    <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+                    <p><strong>Последний вход:</strong> {{ user.last_login|date:"d.m.Y H:i"|default:"Нет данных" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="solutions-tab" data-toggle="tab" href="#solutions" role="tab">
+                        Мои решения ({{ solutions.count }})
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="events-tab" data-toggle="tab" href="#events" role="tab">
+                        Мои события ({{ events.count }})
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="tab-content mt-3" id="profileTabsContent">
+                <!-- Вкладка решений -->
+                <div class="tab-pane fade show active" id="solutions" role="tabpanel">
+                    {% for solution in solutions %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'event_detail' solution.event.id %}">{{ solution.event.title }}</a>
+                            </h5>
+                            <p class="card-text">{{ solution.description|truncatewords:30 }}</p>
+                            {% if solution.file %}
+                            <p>
+                                <small class="text-muted">
+                                    Файл: 
+                                    <a href="{% url 'download_file' solution.file.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-download mr-1"></i> {{ solution.file.file_name }}
+                                    </a>
+                                </small>
+                            </p>
+                            {% endif %}
+                            <p><small class="text-muted">Добавлено: {{ solution.created_at|date:"d.m.Y H:i" }}</small></p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">У вас пока нет решений.</p>
+                    {% endfor %}
+                </div>
+                
+                <!-- Вкладка событий -->
+                <div class="tab-pane fade" id="events" role="tabpanel">
+                    {% for event in events %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="{% url 'event_detail' event.id %}">{{ event.title }}</a>
+                            </h5>
+                            <p class="card-text">{{ event.description|truncatewords:30 }}</p>
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted">Создано: {{ event.created_at|date:"d.m.Y" }}</small>
+                                <span class="badge badge-{{ event.status|yesno:'success,secondary' }}">
+                                    {{ event.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">Вы пока не создали ни одного события.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

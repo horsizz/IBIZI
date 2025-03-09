@@ -1,0 +1,95 @@
+{% extends 'albedo/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">{{ event.title }}</h3>
+            <div>
+                <span class="badge badge-{{ event.status|yesno:'success,secondary' }}">
+                    {{ event.get_status_display }}
+                </span>
+                {% if user.role == 'admin' %}
+                <a href="{% url 'delete_event' event.id %}" class="btn btn-sm btn-danger ml-2" 
+                   onclick="return confirm('Вы уверены, что хотите удалить это событие? Это действие нельзя отменить.')">
+                    <i class="fas fa-trash"></i> Удалить
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+            {% if event.description %}
+                {{ event.description }}
+            {% else %}
+                <span class="text-muted">Описание отсутствует.</span>
+            {% endif %}
+            </p>
+            <div class="row mt-3">
+            <div class="col-md-6">
+                <p><strong>Создано:</strong> {{ event.created_at|date:"d.m.Y H:i" }}</p>
+                {% if event.limit_date %}
+                <p><strong>Срок сдачи:</strong> {{ event.limit_date|date:"d.m.Y H:i" }}</p>
+                {% else %}
+                <p class="text-muted">Отсутствует срок сдачи.</p>
+                {% endif %}
+            </div>
+                <div class="col-md-6">
+                    <p><strong>Автор:</strong> {{ event.user.username }}</p>
+                    {% if event.file %}
+                    <p>
+                        <strong>Прикрепленный файл:</strong>
+                        <a href="{% url 'download_file' event.file.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download mr-1"></i> {{ event.file.file_name }}
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if event.status != 'closed' %}
+    <div class="text-right mb-4">
+        {% if user.is_authenticated and user.active %}
+            <a href="{% url 'add_solution' event.id %}" class="btn btn-primary">Добавить решение</a>
+        {% elif user.is_authenticated and not user.active %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> Вы не можете добавлять решения, так как ваш аккаунт заблокирован.
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <h4>Решения ({{ solutions.count }})</h4>
+    {% for solution in solutions %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-top">
+                <h5 class="card-title">Решение от {{ solution.user.username }}</h5>
+                {% if user.role == 'admin' %}
+                <a href="{% url 'delete_solution' solution.id %}" class="btn btn-sm btn-danger" 
+                   onclick="return confirm('Вы уверены, что хотите удалить это решение? Это действие нельзя отменить.')">
+                    <i class="fas fa-trash"></i>
+                </a>
+                {% endif %}
+            </div>
+            <p class="card-text">{{ solution.description }}</p>
+            {% if solution.file %}
+            <p>
+                <small class="text-muted">
+                    Прикрепленный файл: 
+                    <a href="{% url 'download_file' solution.file.id %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-download mr-1"></i> {{ solution.file.file_name }}
+                    </a>
+                </small>
+            </p>
+            {% endif %}
+            <p><small class="text-muted">Добавлено: {{ solution.created_at|date:"d.m.Y H:i" }}</small></p>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">Пока нет решений.</p>
+    {% endfor %}
+</div>
+{% endblock %}

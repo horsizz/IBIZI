@@ -1,0 +1,26 @@
+{% extends 'albedo/base.html' %}
+
+{% block content %}
+<h1 style="text-align: center;">Albedo</h1>
+<div class="con" style="padding: 10px; max-width: 600px; margin: 0 auto;">
+    <p>Приветствуем Вас на нашей платформе Albedo, где вы не только сможете прокачать свои навыки программирования, но и проверить свой код на прочность!</p>
+</div>
+{% for event in events %}
+<div class="card mb-3" style="padding: 10px; max-width: 900px; margin: 0 auto;">
+    <div class="card-body">
+        <h5 class="card-title">
+            <a href="{% url 'event_detail' event.id %}">{{ event.title }}</a>
+        </h5>
+        <p class="card-text">{{ event.description|truncatewords:30 }}</p>
+        <div class="d-flex justify-content-between">
+            <small class="text-muted">Создано: {{ event.created_at|date:"d.m.Y" }}</small>
+            <span class="badge badge-{{ event.status|yesno:'success,secondary' }}">
+                {{ event.get_status_display }}
+            </span>
+        </div>
+    </div>
+</div>
+{% empty %}
+<p class="text-muted">Пока нет доступных событий.</p>
+{% endfor %}
+{% endblock %}
