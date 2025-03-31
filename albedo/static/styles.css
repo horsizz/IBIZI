@@ -1,20 +1,64 @@
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --card-bg: #ffffff;
+    --header-bg: #343a40;
+    --header-text: white;
+    --border-color: rgba(0,0,0,0.125);
+    --input-bg: #ffffff;
+    --input-text: #495057;
+    --accent-color: #007bff;
+}
+
+[data-theme="dark"] {
+    --bg-color: #1e2124;
+    --text-color: #e9ecef;
+    --card-bg: #2d3238;
+    --header-bg: #161819;
+    --header-text: #f8f9fa;
+    --border-color: rgba(255,255,255,0.125);
+    --input-bg: #343a40;
+    --input-text: #e9ecef;
+    --accent-color: #0d6efd;
+}
+
 body {
     font-family: Arial, sans-serif;
-    background-color: #f8f9fa;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     margin: 0;
     padding: 0;
+    transition: background-color 0.1s ease, color 0.1s ease; /* Reduced color transition time */
 }
+
+/* Добавляем плавные переходы для всех элементов */
+* {
+    transition: background-color 0.1s ease, color 0.05s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* Исключаем из переходов элементы, для которых они могут вызывать проблемы */
+.fa, .fas, .fa-moon, .fa-sun, button, .btn, .theme-toggle {
+    transition: background-color 0.1s ease, transform 0.1s ease !important;
+}
+
+/* Быстрые переходы для текстовых элементов */
+p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th {
+    transition: color 0.05s ease !important;
+}
+
 .header-container {
-    background-color: #343a40;
-    color: white;
+    background-color: var(--header-bg);
+    color: var(--header-text);
     padding: 20px;
     text-align: center;
 }
+
 .header-container h1 {
     margin: 0;
 }
+
 .header-container .button {
-    background-color: #007bff;
+    background-color: var(--accent-color);
     color: white;
     padding: 10px 20px;
     text-decoration: none;
@@ -22,20 +66,77 @@ body {
     margin-top: 10px;
     display: inline-block;
 }
+
 .header-container .button:hover {
     background-color: #0056b3;
 }
+
 .con {
     padding: 20px;
     text-align: center;
 }
+
 .text-container {
     display: block;
     text-align: center;
     margin: 20px 0;
-    color: #007bff;
+    color: var(--accent-color);
     text-decoration: none;
 }
+
 .text-container:hover {
     text-decoration: underline;
+}
+
+/* Стили для темной темы */
+[data-theme="dark"] .card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-body {
+    background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .form-control {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control:focus {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+}
+
+[data-theme="dark"] .navbar-dark {
+    background-color: var(--header-bg) !important;
+}
+
+[data-theme="dark"] .table {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+/* Кнопка переключения темы */
+.theme-toggle {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }

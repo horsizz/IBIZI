@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-4">
     <div class="card">
-        <div class="card-header bg-dark text-white">
+        <div class="card-header" style="background-color: var(--header-bg); color: var(--header-text);">
             <h3 class="mb-0">{% if form.instance.pk %}Редактировать событие{% else %}Создать новое событие{% endif %}</h3>
         </div>
         <div class="card-body">
@@ -15,7 +15,7 @@
                     {{ field.errors }}
                     {{ field }}
                     {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                    <small class="form-text" style="color: var(--text-color); opacity: 0.8;">{{ field.help_text }}</small>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -27,4 +27,37 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Стили для формы в темном режиме */
+    [data-theme="dark"] .card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .card-body {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+    
+    [data-theme="dark"] .form-control {
+        background-color: var(--input-bg);
+        color: var(--input-text);
+        border-color: var(--border-color);
+    }
+    
+    [data-theme="dark"] .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        border-color: var(--accent-color);
+    }
+    
+    [data-theme="dark"] select.form-control option {
+        background-color: var(--input-bg);
+        color: var(--input-text);
+    }
+    
+    [data-theme="dark"] input[type="datetime-local"] {
+        color-scheme: dark;
+    }
+</style>
 {% endblock %}

@@ -3,18 +3,18 @@
 {% block content %}
 <div class="container mt-4">
     <div class="card">
-        <div class="card-header bg-dark text-white">
+        <div class="card-header" style="background-color: var(--header-bg); color: var(--header-text);">
             <h3 class="mb-0">Управление пользователями</h3>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped mobile-table">
                     <thead>
                         <tr>
                             <th>Имя пользователя</th>
-                            <th>Email</th>
+                            <th class="d-none d-md-table-cell">Email</th>
                             <th>Роль</th>
-                            <th>Дата регистрации</th>
+                            <th class="d-none d-md-table-cell">Дата регистрации</th>
                             <th>Статус</th>
                             <th>Действия</th>
                         </tr>
@@ -22,14 +22,20 @@
                     <tbody>
                         {% for user_item in users %}
                         <tr>
-                            <td>{{ user_item.username }}</td>
-                            <td>{{ user_item.email }}</td>
+                            <td>
+                                {{ user_item.username }}
+                                <div class="d-md-none">
+                                    <small class="text-muted">{{ user_item.email }}</small>
+                                    <small class="d-block mt-1">{{ user_item.date_joined|date:"d.m.Y" }}</small>
+                                </div>
+                            </td>
+                            <td class="d-none d-md-table-cell">{{ user_item.email }}</td>
                             <td>
                                 <span class="badge badge-{% if user_item.role == 'admin' %}danger{% else %}info{% endif %}">
                                     {{ user_item.get_role_display }}
                                 </span>
                             </td>
-                            <td>{{ user_item.date_joined|date:"d.m.Y" }}</td>
+                            <td class="d-none d-md-table-cell">{{ user_item.date_joined|date:"d.m.Y" }}</td>
                             <td>
                                 {% if user_item.active %}
                                 <span class="badge badge-success">Активен</span>
@@ -42,9 +48,11 @@
                                 <a href="{% url 'toggle_user_status' user_item.id %}" class="btn btn-sm 
                                     {% if user_item.active %}btn-warning{% else %}btn-success{% endif %}">
                                     {% if user_item.active %}
-                                    <i class="fas fa-lock"></i> Заблокировать
+                                    <i class="fas fa-lock"></i>
+                                    <span class="d-none d-md-inline ml-1">Блок</span>
                                     {% else %}
-                                    <i class="fas fa-unlock"></i> Разблокировать
+                                    <i class="fas fa-unlock"></i>
+                                    <span class="d-none d-md-inline ml-1">Разблок</span>
                                     {% endif %}
                                 </a>
                                 {% endif %}
@@ -61,4 +69,29 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Стили для мобильной таблицы */
+    @media (max-width: 767.98px) {
+        .mobile-table {
+            font-size: 0.875rem;
+        }
+        
+        .mobile-table th, 
+        .mobile-table td {
+            padding: 0.5rem 0.3rem;
+        }
+        
+        /* Уменьшаем размер кнопок на мобильных */
+        .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+        }
+        
+        /* Настройка для темной темы */
+        [data-theme="dark"] .mobile-table td small.text-muted {
+            color: #adb5bd !important;
+        }
+    }
+</style>
 {% endblock %}

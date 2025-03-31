@@ -9,19 +9,101 @@ from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
 from django.utils.text import slugify
 from .utils import secure_file_upload  # Импортируем новую функцию
+from .utils import secure_file_upload
+from django.db.models import Prefetch# Импортируем новую функцию
+from django.db import models
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.contrib.sites.shortcuts import get_current_site
+from django.urls import reverse
+from django.contrib.auth.tokens import default_token_generator
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 
 def home(request):
     # Получаем все события, отсортированные по дате создания (новые сначала)
-    events = Event.objects.all().order_by('-created_at')
+    events = Event.objects.filter(user__active=True).order_by('-created_at')
     return render(request, 'albedo/home.html', {'events': events})
 
+EMAIL_HOST = "smtp.mail.ru"
+EMAIL_PORT = 465
+EMAIL_HOST_USER = "albedo_ibizi@mail.ru"
+EMAIL_HOST_PASSWORD = "6ecnasEbj6gEsuszYBQb"  # пароль приложения из настроек Mail.ru
+# В идеале эту хуйню   ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑  тут не хранить
+
+def send_verification_email(request, username, email, uid, token):
+    subject = 'Подтверждение вашей почты'
+    current_site = request.get_host()
+    verification_link = f"http://{current_site}/verify-email/{uid}/{token}/"
+    message = f"Здравствуйте, {username}!\n\nДля подтверждения вашего email перейдите по ссылке:\n{verification_link}\n\nЕсли вы не регистрировались, проигнорируйте это сообщение."
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = EMAIL_HOST_USER
+        msg["To"] = email
+        msg["Subject"] = subject
+        msg.attach(MIMEText(message, "plain"))
+
+        server = smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT)
+        server.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
+        server.sendmail(EMAIL_HOST_USER, email, msg.as_string())
+        server.quit()
+    except Exception as e:
+        print("Ошибка при отправке письма:", e)
+
+def verify_email(request, uidb64, token):
+    try:
+        username = urlsafe_base64_decode(uidb64).decode()
+        user_data = request.session.get('user_data')
+        password = request.session.get('user_password')
+
+        if not user_data or user_data['username'] != username:
+            raise ValueError('Неверные данные сессии.')
+
+        user = User(**user_data)
+        if not default_token_generator.check_token(user, token):
+            raise ValueError('Неверный токен.')
+
+
+        user.set_password(password)
+        user.save()
+        del request.session['user_data']
+        del request.session['user_password']
+        messages.success(request, 'Ваш email успешно подтвержден! Теперь вы можете войти в свой аккаунт.')
+        return redirect('login')
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+        messages.error(request, 'Неверная или устаревшая ссылка для подтверждения почты.')
+        return render(request, 'albedo/verify_email.html', {'status': 'error','error': e})
+    
 def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Регистрация успешно завершена!')
+            # Извлекаем данные формы
+            user_data = form.cleaned_data.copy()
+            password = user_data.pop('password1')  # Пароль храним отдельно
+            user_data.pop('password2')  # Удаляем второй пароль, он не нужен
+
+            # Генерация UID и токена
+            uid = urlsafe_base64_encode(force_bytes(form.cleaned_data['username']))
+            token = default_token_generator.make_token(User(username=form.cleaned_data['username'], email=form.cleaned_data['email']))
+
+            # Сохраняем данные формы в сессии (без сохранения в БД)
+            request.session['user_data'] = user_data
+            request.session['user_password'] = password
+
+            send_verification_email(request, user_data['username'], user_data['email'], uid, token)
+
+            messages.success(request, 'Регистрация почти завершена! Проверьте свою почту для подтверждения.')
+            #user = form.save(commit=False)
+            #user.is_active = False
+            #user.save()
+            #send_verification_email()
+            #login(request, user)
+            #messages.success(request, 'Регистрация успешно завершена!')
             return redirect('event_list')
         else:
             # Print form errors to console for debugging
@@ -31,9 +113,10 @@ def register(request):
         form = UserRegistrationForm()
     return render(request, 'albedo/register.html', {'form': form})
 
-# @login_required
+@login_required
 def event_list(request):
-    events = Event.objects.all().order_by('-created_at')
+    # Фильтруем события, созданные только активными пользователями
+    events = Event.objects.filter(user__active=True).order_by('-created_at')
     return render(request, 'albedo/event_list.html', {'events': events})
 
 @login_required

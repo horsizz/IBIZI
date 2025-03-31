@@ -5,9 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Albedo</title>
+    
+    <!-- Добавляем скрипт раннего применения темы до загрузки стилей -->
+    <script>
+        // Применяем сохраненную тему немедленно, чтобы избежать мерцания
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            }
+        })();
+    </script>
+    
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Add Font Awesome for icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- Подключаем наши стили -->
+    <link href="{% static 'styles.css' %}" rel="stylesheet">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -45,6 +59,13 @@
                             <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
                         </li>
                     {% endif %}
+                    <!-- Кнопка переключения темы -->
+                    <li class="nav-item">
+                        <span class="nav-link theme-toggle" id="themeToggle">
+                            <i class="fas fa-moon" id="darkIcon"></i>
+                            <i class="fas fa-sun" id="lightIcon" style="display: none;"></i>
+                        </span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -66,5 +87,52 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <!-- Скрипт для переключения темы -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const lightIcon = document.getElementById('lightIcon');
+            
+            // Функция для установки темы
+            function setTheme(themeName) {
+                document.documentElement.setAttribute('data-theme', themeName);
+                localStorage.setItem('theme', themeName);
+                
+                // Обновляем иконки
+                if (themeName === 'dark') {
+                    darkIcon.style.display = 'none';
+                    lightIcon.style.display = 'inline-block';
+                } else {
+                    darkIcon.style.display = 'inline-block';
+                    lightIcon.style.display = 'none';
+                }
+            }
+            
+            // Функция для переключения темы
+            function toggleTheme() {
+                const currentTheme = localStorage.getItem('theme') || 'light';
+                if (currentTheme === 'light') {
+                    setTheme('dark');
+                } else {
+                    setTheme('light');
+                }
+            }
+            
+            // Проверяем сохраненную тему при загрузке и обновляем иконки
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                // Только обновляем иконки, тема уже применена ранним скриптом
+                if (savedTheme === 'dark') {
+                    darkIcon.style.display = 'none';
+                    lightIcon.style.display = 'inline-block';
+                }
+            }
+            
+            // Добавляем обработчик для кнопки переключения
+            themeToggle.addEventListener('click', toggleTheme);
+        });
+    </script>
 </body>
 </html>

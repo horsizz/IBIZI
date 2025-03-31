@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('register/', views.register, name='register'),
     path('events/', views.event_list, name='event_list'),
+    path('verify-email/<uidb64>/<token>/', views.verify_email, name='verify_email'),
     path('login/', auth_views.LoginView.as_view(template_name='albedo/login.html'), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),  # Новый URL для профиля

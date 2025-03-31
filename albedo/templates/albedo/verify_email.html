@@ -1,0 +1,20 @@
+{% extends 'albedo/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Подтверждение почты</h2>
+
+    {% if status == 'success' %}
+        <div class="alert alert-success" role="alert">
+            Ваш email успешно подтвержден! Теперь вы можете <a href="{% url 'login' %}">войти</a> в свой аккаунт.
+        </div>
+    {% elif status == 'error' %}
+        <div class="alert alert-danger" role="alert">
+            Неверная или устаревшая ссылка для подтверждения почты.
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            Произошла неизвестная ошибка. Попробуйте еще раз.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
