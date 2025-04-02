@@ -1,95 +1,167 @@
 {% extends 'albedo/base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card mb-4">
-        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">{{ event.title }}</h3>
-            <div>
-                <span class="badge badge-{{ event.status|yesno:'success,secondary' }}">
+<div style="padding-top: 30px; max-width: 1200px; margin: 0 auto;">
+    <!-- Event Header Card -->
+    <div style="background-color: rgba(52, 58, 64, 0.5); border-radius: 25px; padding: 0; margin-bottom: 30px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.15); overflow: hidden;">
+        <div style="background: linear-gradient(90deg, rgba(26, 188, 156, 0.3), rgba(52, 58, 64, 0.5)); padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: white; margin: 0; font-size: 1.6rem; font-weight: 400;">{{ event.title }}</h3>
+            <div style="display: flex; align-items: center;">
+                <span style="display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; background-color: {% if event.status %}rgba(26, 188, 156, 0.6){% else %}rgba(108, 117, 125, 0.6){% endif %}; color: white; font-weight: 500; margin-right: 10px;">
                     {{ event.get_status_display }}
                 </span>
                 {% if user.role == 'admin' %}
-                <a href="{% url 'delete_event' event.id %}" class="btn btn-sm btn-danger ml-2" 
-                   onclick="return confirm('Вы уверены, что хотите удалить это событие? Это действие нельзя отменить.')">
-                    <i class="fas fa-trash"></i> Удалить
+                <a href="{% url 'delete_event' event.id %}"
+                   onclick="return confirm('Вы уверены, что хотите удалить это событие? Это действие нельзя отменить.')"
+                   style="display: inline-flex; align-items: center; background-color: rgba(231, 76, 60, 0.2); color: rgba(231, 76, 60, 0.8); padding: 5px 12px; border-radius: 20px; text-decoration: none; border: 1px solid rgba(231, 76, 60, 0.3); transition: all 0.3s ease; font-size: 0.9rem;">
+                    <i class="fas fa-trash" style="margin-right: 5px;"></i> Удалить
                 </a>
                 {% endif %}
             </div>
         </div>
-        <div class="card-body">
-            <p class="card-text">
-            {% if event.description %}
-                {{ event.description }}
-            {% else %}
-                <span class="text-muted">Описание отсутствует.</span>
-            {% endif %}
-            </p>
-            <div class="row mt-3">
-            <div class="col-md-6">
-                <p><strong>Создано:</strong> {{ event.created_at|date:"d.m.Y H:i" }}</p>
-                {% if event.limit_date %}
-                <p><strong>Срок сдачи:</strong> {{ event.limit_date|date:"d.m.Y H:i" }}</p>
+
+        <div style="padding: 25px;">
+            <div style="color: rgba(255,255,255,0.9); margin-bottom: 25px; line-height: 1.7; font-size: 1rem;">
+                {% if event.description %}
+                    {{ event.description }}
                 {% else %}
-                <p class="text-muted">Отсутствует срок сдачи.</p>
+                    <span style="color: rgba(255,255,255,0.6);">Описание отсутствует.</span>
                 {% endif %}
             </div>
-                <div class="col-md-6">
-                    <p><strong>Автор:</strong> {{ event.user.username }}</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #1ABC9C; font-weight: 500;">Создано:</span>
+                        <span style="color: rgba(255,255,255,0.8); margin-left: 10px;">{{ event.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    {% if event.limit_date %}
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #1ABC9C; font-weight: 500;">Срок сдачи:</span>
+                        <span style="color: rgba(255,255,255,0.8); margin-left: 10px;">{{ event.limit_date|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    {% else %}
+                    <div style="color: rgba(255,255,255,0.6); margin-bottom: 15px;">
+                        Отсутствует срок сдачи
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <div style="margin-bottom: 15px;">
+                        <span style="color: #1ABC9C; font-weight: 500;">Автор:</span>
+                        <span style="color: rgba(255,255,255,0.8); margin-left: 10px;">{{ event.user.username }}</span>
+                    </div>
                     {% if event.file %}
-                    <p>
-                        <strong>Прикрепленный файл:</strong>
-                        <a href="{% url 'download_file' event.file.id %}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-download mr-1"></i> {{ event.file.file_name }}
+                    <div>
+                        <span style="color: #1ABC9C; font-weight: 500;">Файл:</span>
+                        <a href="{% url 'download_file' event.file.id %}" style="display: inline-flex; align-items: center; background-color: rgba(26, 188, 156, 0.15); color: #1ABC9C; padding: 5px 12px; border-radius: 20px; text-decoration: none; border: 1px solid rgba(26, 188, 156, 0.25); transition: all 0.3s ease; margin-left: 10px; font-size: 0.9rem;">
+                            <i class="fas fa-download" style="margin-right: 5px;"></i> {{ event.file.file_name }}
                         </a>
-                    </p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Add Solution Button -->
     {% if event.status != 'closed' %}
-    <div class="text-right mb-4">
+    <div style="text-align: right; margin-bottom: 30px;">
         {% if user.is_authenticated and user.active %}
-            <a href="{% url 'add_solution' event.id %}" class="btn btn-primary">Добавить решение</a>
+            <a href="{% url 'add_solution' event.id %}" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, rgba(26, 188, 156, 0.7), rgba(22, 160, 133, 0.7)); color: white; padding: 10px 25px; border-radius: 25px; text-decoration: none; font-size: 1rem; font-weight: 400; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(26, 188, 156, 0.25); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Добавить решение
+            </a>
         {% elif user.is_authenticated and not user.active %}
-            <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle"></i> Вы не можете добавлять решения, так как ваш аккаунт заблокирован.
+            <div style="background-color: rgba(231, 76, 60, 0.15); border-left: 3px solid rgba(231, 76, 60, 0.6); padding: 15px; border-radius: 5px; backdrop-filter: blur(5px);">
+                <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 0.95rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: rgba(231, 76, 60, 0.8); margin-right: 10px;"></i>
+                    Вы не можете добавлять решения, так как ваш аккаунт заблокирован.
+                </p>
             </div>
         {% endif %}
     </div>
     {% endif %}
 
-    <h4>Решения ({{ solutions.count }})</h4>
+    <!-- Solutions Section -->
+    <h4 style="color: white; font-size: 1.5rem; font-weight: 300; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        Решения ({{ solutions.count }})
+    </h4>
+
     {% for solution in solutions %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-top">
-                <h5 class="card-title">Решение от {{ solution.user.username }}</h5>
-                {% if user.role == 'admin' %}
-                <a href="{% url 'delete_solution' solution.id %}" class="btn btn-sm btn-danger" 
-                   onclick="return confirm('Вы уверены, что хотите удалить это решение? Это действие нельзя отменить.')">
-                    <i class="fas fa-trash"></i>
-                </a>
-                {% endif %}
-            </div>
-            <p class="card-text">{{ solution.description }}</p>
-            {% if solution.file %}
-            <p>
-                <small class="text-muted">
-                    Прикрепленный файл: 
-                    <a href="{% url 'download_file' solution.file.id %}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-download mr-1"></i> {{ solution.file.file_name }}
-                    </a>
-                </small>
-            </p>
+    <div style="background-color: rgba(52, 58, 64, 0.45); border-radius: 25px; padding: 25px; margin-bottom: 20px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+            <h5 style="color: #1ABC9C; margin: 0; font-size: 1.2rem; font-weight: 400;">
+                Решение от {{ solution.user.username }}
+            </h5>
+            {% if user.role == 'admin' %}
+            <a href="{% url 'delete_solution' solution.id %}"
+               onclick="return confirm('Вы уверены, что хотите удалить это решение? Это действие нельзя отменить.')"
+               style="display: inline-flex; align-items: center; background-color: rgba(231, 76, 60, 0.15); color: rgba(231, 76, 60, 0.8); padding: 3px 10px; border-radius: 20px; text-decoration: none; border: 1px solid rgba(231, 76, 60, 0.2); transition: all 0.3s ease; font-size: 0.8rem;">
+                <i class="fas fa-trash" style="margin-right: 5px;"></i>
+            </a>
             {% endif %}
-            <p><small class="text-muted">Добавлено: {{ solution.created_at|date:"d.m.Y H:i" }}</small></p>
         </div>
+
+        <div style="color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.6; font-size: 0.95rem;">
+            {{ solution.description }}
+        </div>
+
+        {% if solution.file %}
+        <div style="margin-bottom: 15px;">
+            <a href="{% url 'download_file' solution.file.id %}" style="display: inline-flex; align-items: center; background-color: rgba(26, 188, 156, 0.15); color: #1ABC9C; padding: 5px 12px; border-radius: 20px; text-decoration: none; border: 1px solid rgba(26, 188, 156, 0.25); transition: all 0.3s ease; font-size: 0.9rem;">
+                <i class="fas fa-download" style="margin-right: 8px;"></i> {{ solution.file.file_name }}
+            </a>
+        </div>
+        {% endif %}
+
+        <small style="color: rgba(255,255,255,0.55);">Добавлено: {{ solution.created_at|date:"d.m.Y H:i" }}</small>
     </div>
     {% empty %}
-    <p class="text-muted">Пока нет решений.</p>
+    <div style="background-color: rgba(52, 58, 64, 0.45); border-radius: 25px; padding: 30px; text-align: center; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+        <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 1rem;">
+            Пока нет решений.
+        </p>
+    </div>
     {% endfor %}
 </div>
+
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background: url('{% static "images/fon.jpg" %}') no-repeat center center fixed;
+        background-size: cover;
+        padding: 0 0 60px 0;
+    }
+
+    a {
+        transition: all 0.3s ease;
+    }
+
+    a:hover {
+        color: #16A085 !important;
+        text-shadow: 0 0 12px rgba(26, 188, 156, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3) !important;
+    }
+
+    div[style*="background-color: rgba(52, 58, 64, 0.45)"]:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2) !important;
+        border: 1px solid rgba(26, 188, 156, 0.2) !important;
+    }
+
+    @media (max-width: 768px) {
+        div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        h3 {
+            font-size: 1.3rem !important;
+        }
+    }
+</style>
 {% endblock %}

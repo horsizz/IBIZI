@@ -1,63 +1,109 @@
 {% extends 'albedo/base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header" style="background-color: var(--header-bg); color: var(--header-text);">
-            <h3 class="mb-0">{% if form.instance.pk %}Редактировать событие{% else %}Создать новое событие{% endif %}</h3>
+<div style="padding-top: 30px; max-width: 800px; margin: 0 auto;">
+    <div style="background-color: rgba(52, 58, 64, 0.5); border-radius: 25px; overflow: hidden; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.15);">
+        <!-- Form Header -->
+        <div style="background: linear-gradient(90deg, rgba(26, 188, 156, 0.3), rgba(52, 58, 64, 0.5)); padding: 20px 25px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <h3 style="color: white; margin: 0; font-size: 1.6rem; font-weight: 400;">
+                {% if form.instance.pk %}Редактировать событие{% else %}Создать новое событие{% endif %}
+            </h3>
         </div>
-        <div class="card-body">
+
+        <!-- Form Body -->
+        <div style="padding: 25px;">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
+
                 {% for field in form %}
-                <div class="form-group">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field.errors }}
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; color: #1ABC9C; margin-bottom: 8px; font-size: 0.95rem;">
+                        {{ field.label }}
+                    </label>
+
+                    {% if field.errors %}
+                    <div style="color: #E74C3C; font-size: 0.85rem; margin-bottom: 5px;">
+                        {{ field.errors }}
+                    </div>
+                    {% endif %}
+
                     {{ field }}
+
                     {% if field.help_text %}
-                    <small class="form-text" style="color: var(--text-color); opacity: 0.8;">{{ field.help_text }}</small>
+                    <small style="display: block; color: rgba(255,255,255,0.6); margin-top: 5px; font-size: 0.85rem;">
+                        {{ field.help_text }}
+                    </small>
                     {% endif %}
                 </div>
                 {% endfor %}
-                <button type="submit" class="btn btn-primary">
-                    {% if form.instance.pk %}Сохранить изменения{% else %}Создать событие{% endif %}
-                </button>
-                <a href="{% url 'event_list' %}" class="btn btn-secondary">Отмена</a>
+
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="submit" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, rgba(26, 188, 156, 0.7), rgba(22, 160, 133, 0.7)); color: white; padding: 10px 25px; border-radius: 25px; text-decoration: none; font-size: 1rem; font-weight: 400; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(26, 188, 156, 0.25); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); border: none; cursor: pointer;">
+                        {% if form.instance.pk %}Сохранить изменения{% else %}Создать событие{% endif %}
+                    </button>
+
+                    <a href="{% url 'event_list' %}" style="display: inline-flex; align-items: center; background-color: rgba(108, 117, 125, 0.3); color: rgba(255,255,255,0.9); padding: 10px 25px; border-radius: 25px; text-decoration: none; font-size: 1rem; font-weight: 400; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1);">
+                        Отмена
+                    </a>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
 <style>
-    /* Стили для формы в темном режиме */
-    [data-theme="dark"] .card {
-        background-color: var(--card-bg);
-        border-color: var(--border-color);
+    body {
+        background: url('{% static "images/fon.jpg" %}') no-repeat center center fixed;
+        background-size: cover;
+        padding: 0 0 60px 0;
     }
-    
-    [data-theme="dark"] .card-body {
-        background-color: var(--card-bg);
-        color: var(--text-color);
+
+    input, textarea, select {
+        width: 100%;
+        padding: 12px 15px;
+        background-color: rgba(52, 58, 64, 0.7) !important;
+        color: rgba(255,255,255,0.9) !important;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 15px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
     }
-    
-    [data-theme="dark"] .form-control {
-        background-color: var(--input-bg);
-        color: var(--input-text);
-        border-color: var(--border-color);
+
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: rgba(26, 188, 156, 0.5);
+        box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2);
     }
-    
-    [data-theme="dark"] .form-control:focus {
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-        border-color: var(--accent-color);
-    }
-    
-    [data-theme="dark"] select.form-control option {
-        background-color: var(--input-bg);
-        color: var(--input-text);
-    }
-    
-    [data-theme="dark"] input[type="datetime-local"] {
+
+    input[type="datetime-local"] {
         color-scheme: dark;
+    }
+
+    button:hover, a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(26, 188, 156, 0.3) !important;
+    }
+
+    a:hover {
+        background-color: rgba(108, 117, 125, 0.4) !important;
+    }
+
+    @media (max-width: 768px) {
+        div[style*="max-width: 800px"] {
+            padding: 20px 15px;
+        }
+
+        div[style*="display: flex; gap: 15px;"] {
+            flex-direction: column;
+        }
+
+        button, a {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
     }
 </style>
 {% endblock %}

@@ -1,74 +1,103 @@
 {% extends 'albedo/base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>События</h2>
+<div style="padding-top: 30px;">
+    <div style="max-width: 1200px; margin: 0 auto 30px auto; display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="color: white; font-size: 2.2rem; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.5); font-weight: 300; letter-spacing: 0.5px;">События</h1>
         {% if user.role == 'admin' %}
-        <a href="{% url 'create_event' %}" class="btn btn-primary">Создать событие</a>
+        <a href="{% url 'create_event' %}" style="display: inline-block; background-color: rgba(26, 188, 156, 0.6); color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: 400; transition: all 0.3s ease; border: 1px solid rgba(26, 188, 156, 0.3);">
+            Создать событие
+        </a>
         {% endif %}
     </div>
 
-    <!-- Action button for all active users at the top of the page -->
-    <div class="text-center mb-4">
+    <!-- Action button for all active users -->
+    <div style="text-align: center; margin-bottom: 40px;">
         {% if user.is_authenticated and user.active %}
-            <a href="{% url 'create_event' %}" class="btn btn-lg btn-success">
-                <i class="fas fa-plus-circle mr-2"></i> Создать новое событие
+            <a href="{% url 'create_event' %}" style="display: inline-block; background: linear-gradient(135deg, rgba(26, 188, 156, 0.7), rgba(22, 160, 133, 0.7)); color: white; padding: 12px 28px; border-radius: 25px; text-decoration: none; font-size: 1rem; font-weight: 400; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(26, 188, 156, 0.25); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Создать новое событие
             </a>
         {% elif user.is_authenticated and not user.active %}
-            <div class="alert alert-warning">
-                <i class="fas fa-exclamation-triangle"></i> Вы не можете создавать новые события, так как ваш аккаунт заблокирован.
+            <div style="background-color: rgba(231, 76, 60, 0.15); border-left: 3px solid rgba(231, 76, 60, 0.6); padding: 15px; border-radius: 5px; max-width: 800px; margin: 0 auto; backdrop-filter: blur(5px);">
+                <p style="color: rgba(255,255,255,0.85); margin: 0; font-size: 0.95rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: rgba(231, 76, 60, 0.8); margin-right: 10px;"></i>
+                    Вы не можете создавать новые события, так как ваш аккаунт заблокирован.
+                </p>
             </div>
         {% endif %}
     </div>
 
-    <div class="row">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto;">
         {% for event in events %}
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ event.title }}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">Status: {{ event.get_status_display }}</h6>
-                    <p class="card-text">{{ event.description|truncatewords:30 }}</p>
-                    <div class="d-flex justify-content-between">
-                        <small>Created: {{ event.created_at|date }}</small>
-                        {% if event.limit_date %}
-                        <small>Due: {{ event.limit_date|date }}</small>
-                        {% endif %}
-                    </div>
-                    <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-info mt-2">Подробнее</a>
-                </div>
+        <div style="background-color: rgba(52, 58, 64, 0.45); border-radius: 25px; padding: 25px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+            <h3 style="color: #1ABC9C; margin-top: 0; margin-bottom: 15px; font-size: 1.4rem; font-weight: 400;">
+                {{ event.title }}
+            </h3>
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {% if event.status %}#1ABC9C{% else %}#6c757d{% endif %}; margin-right: 8px;"></span>
+                <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.9rem;">
+                    {{ event.get_status_display }}
+                </p>
             </div>
+            <p style="color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.6; font-size: 0.95rem;">
+                {{ event.description|truncatewords:30 }}
+            </p>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85rem;">
+                <small style="color: rgba(255,255,255,0.55);">Создано: {{ event.created_at|date:"d.m.Y" }}</small>
+                {% if event.limit_date %}
+                <small style="color: rgba(255,255,255,0.55);">До: {{ event.limit_date|date:"d.m.Y" }}</small>
+                {% endif %}
+            </div>
+            <a href="{% url 'event_detail' event.id %}" style="display: inline-flex; align-items: center; background-color: rgba(26, 188, 156, 0.15); color: #1ABC9C; padding: 8px 18px; border-radius: 20px; text-decoration: none; border: 1px solid rgba(26, 188, 156, 0.25); transition: all 0.3s ease; font-size: 0.9rem;">
+                Подробнее <i class="fas fa-arrow-right" style="margin-left: 8px; font-size: 0.8rem;"></i>
+            </a>
         </div>
         {% empty %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                <p class="mb-0">Пока нет событий. Будьте первым, кто создаст событие!</p>
-            </div>
+        <div style="background-color: rgba(52, 58, 64, 0.45); border-radius: 25px; padding: 40px; text-align: center; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); max-width: 800px; margin: 0 auto; grid-column: 1 / -1; box-shadow: 0 8px 25px rgba(0,0,0,0.15);">
+            <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 1rem;">
+                Пока нет событий. Будьте первым, кто создаст событие!
+            </p>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Add Font Awesome for icons -->
+<!-- Font Awesome -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 <style>
-    .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
-        padding: 12px 24px;
-        font-size: 18px;
-        border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s;
+    body {
+        background: url('{% static "images/fon.jpg" %}') no-repeat center center fixed;
+        background-size: cover;
+        padding: 0 0 60px 0;
     }
-    
-    .btn-success:hover {
-        background-color: #218838;
-        border-color: #1e7e34;
+
+    a {
+        transition: all 0.3s ease;
+    }
+
+    a:hover {
+        color: #16A085 !important;
+        text-shadow: 0 0 12px rgba(26, 188, 156, 0.4);
         transform: translateY(-2px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 6px 20px rgba(26, 188, 156, 0.3) !important;
+    }
+
+    div[style*="background-color: rgba(52, 58, 64, 0.45)"]:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.2) !important;
+        border: 1px solid rgba(26, 188, 156, 0.2) !important;
+    }
+
+    @media (max-width: 768px) {
+        div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        h1 {
+            font-size: 1.8rem !important;
+        }
     }
 </style>
 {% endblock %}
