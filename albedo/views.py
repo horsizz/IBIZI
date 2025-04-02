@@ -22,6 +22,8 @@ from django.contrib.auth.tokens import default_token_generator
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from config import settings
+from django.shortcuts import render
 
 
 def home(request):
@@ -31,9 +33,10 @@ def home(request):
 
 EMAIL_HOST = "smtp.mail.ru"
 EMAIL_PORT = 465
-EMAIL_HOST_USER = "albedo_ibizi@mail.ru"
-EMAIL_HOST_PASSWORD = "6ecnasEbj6gEsuszYBQb"  # пароль приложения из настроек Mail.ru
-# В идеале эту хуйню   ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑  тут не хранить
+EMAIL_HOST_USER = settings.EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = settings.EMAIL_HOST_PASSWORD  # пароль приложения из настроек Mail.ru
+#исправил
+
 
 def send_verification_email(request, username, email, uid, token):
     subject = 'Подтверждение вашей почты'
