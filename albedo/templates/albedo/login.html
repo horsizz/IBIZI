@@ -21,9 +21,12 @@
                     <input type="text" name="username" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
                 </div>
 
-                <div style="margin-bottom: 30px;">
+                <div style="margin-bottom: 30px; position: relative;">
                     <label style="color: white; font-weight: 500; margin-bottom: 10px; display: block;">Пароль</label>
-                    <input type="password" name="password" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
+                    <input type="password" name="password" id="password" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
+                    <button type="button" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;margin-top: 1.05rem;">
+                        <i class="fas fa-eye" style="color: #888;"></i>
+                    </button>
                 </div>
 
                 <button type="submit" style="background-color: #1ABC9C; color: white; border: none; border-radius: 25px; padding: 12px; width: 100%; font-weight: bold; font-size: 1rem; cursor: pointer; transition: all 0.3s;">

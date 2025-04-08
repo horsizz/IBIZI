@@ -140,3 +140,32 @@ p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th {
 .theme-toggle:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+    z-index: 10;
+    outline: none;
+    transition: color 0.3s;
+}
+
+.password-toggle:hover {
+    color: #333;
+}
+
+input[type="password"],
+input.password-visible {
+    padding-right: 35px;
+}
+
+.alert{
+    display: flex;    ;
+    justify-content: center;
+}
