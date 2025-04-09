@@ -5,37 +5,38 @@
 <div style="padding-top: 30px;">
     <h1 style="text-align: center; color: white; font-size: 3.5rem; margin-bottom: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); font-weight: bold; letter-spacing: 1px;">Подтверждение почты</h1>
 
+    <!-- Добавьте этот блок для вывода системных сообщений -->
+    {% if messages %}
+        <div style="max-width: 600px; margin: 0 auto 20px;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" style="margin: 0 auto 20px; max-width: 80%;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div style="background-color: rgba(52, 58, 64, 0.5); border-radius: 25px; padding: 40px; max-width: 600px; margin: 0 auto; text-align: center; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.15);">
         {% if status == 'success' %}
-            <p style="color: rgba(255,255,255,0.9); margin: 0 0 20px 0; font-size: 1.2rem; line-height: 1.6;">
-                Ваш email успешно подтвержден! Теперь вы можете
-                <a href="{% url 'login' %}" style="color: #1ABC9C; text-decoration: none; font-weight: 500;">войти</a>
-                в свой аккаунт.
-            </p>
+            <div class="alert alert-success" style="margin: 0 auto 20px; max-width: 80%;">
+                <p style="margin: 0; font-size: 1.2rem; line-height: 1.6;">
+                    Ваш email успешно подтвержден! Теперь вы можете
+                    <a href="{% url 'login' %}" style="color: inherit; text-decoration: underline; font-weight: 500;">войти</a>
+                    в свой аккаунт.
+                </p>
+            </div>
         {% elif status == 'error' %}
-            <p style="color: rgba(255,255,255,0.9); margin: 0 0 20px 0; font-size: 1.2rem; line-height: 1.6;">
-                Неверная или устаревшая ссылка для подтверждения почты.
-            </p>
+            <div class="alert alert-error" style="margin: 0 auto 20px; max-width: 80%;">
+                <p style="margin: 0; font-size: 1.2rem; line-height: 1.6;">
+                    Неверная или устаревшая ссылка для подтверждения почты.
+                </p>
+            </div>
         {% else %}
-            <p style="color: rgba(255,255,255,0.9); margin: 0 0 20px 0; font-size: 1.2rem; line-height: 1.6;">
-                Произошла неизвестная ошибка. Попробуйте еще раз.
-            </p>
+            <div class="alert alert-info" style="margin: 0 auto 20px; max-width: 80%;">
+                <p style="margin: 0; font-size: 1.2rem; line-height: 1.6;">
+                    Произошла неизвестная ошибка. Попробуйте еще раз.
+                </p>
+            </div>
         {% endif %}
     </div>
 </div>
-
-<style>
-    body {
-        background: url('{% static "images/fon.jpg" %}') no-repeat center center fixed;
-        background-size: cover;
-        padding: 0 0 60px 0;
-    }
-    a {
-        transition: all 0.3s ease;
-    }
-    a:hover {
-        color: #16A085 !important;
-        text-shadow: 0 0 10px rgba(26, 188, 156, 0.5);
-    }
-</style>
-{% endblock %}

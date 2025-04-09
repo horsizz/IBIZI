@@ -61,13 +61,6 @@
                             <a class="nav-link" href="{% url 'register' %}">Регистрация</a>
                         </li>
                     {% endif %}
-                    <!-- Кнопка переключения темы -->
-                    <!-- <li class="nav-item">
-                        <span class="nav-link theme-toggle" id="themeToggle">
-                            <i class="fas fa-moon" id="darkIcon"></i>
-                            <i class="fas fa-sun" id="lightIcon" style="display: none;"></i>
-                        </span>
-                    </li> -->
                 </ul>
             </div>
         </div>
@@ -76,7 +69,7 @@
     {% if messages %}
     <div class="container mt-3">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
+        <div class="alert alert-{{ message.tags }} theme-aware-alert">
             {{ message }}
         </div>
         {% endfor %}
@@ -91,53 +84,75 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="{% static 'js/login.js' %}"></script>
     <script src="{% static 'js/register.js' %}"></script>
-    
-    <!-- Скрипт для переключения темы -->
+
+    <!-- Обновленный скрипт для работы с темами и сообщениями -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('themeToggle');
-            const darkIcon = document.getElementById('darkIcon');
-            const lightIcon = document.getElementById('lightIcon');
-            
             // Функция для установки темы
             function setTheme(themeName) {
                 document.documentElement.setAttribute('data-theme', themeName);
                 localStorage.setItem('theme', themeName);
-                
-                // Обновляем иконки
-                if (themeName === 'dark') {
-                    darkIcon.style.display = 'none';
-                    lightIcon.style.display = 'inline-block';
-                } else {
-                    darkIcon.style.display = 'inline-block';
-                    lightIcon.style.display = 'none';
-                }
+                updateAlertColors();
             }
-            
-            // Функция для переключения темы
-            function toggleTheme() {
-                const currentTheme = localStorage.getItem('theme') || 'light';
-                if (currentTheme === 'light') {
-                    setTheme('dark');
-                } else {
-                    setTheme('light');
-                }
+
+            // Функция для обновления цветов сообщений
+            function updateAlertColors() {
+                const theme = document.documentElement.getAttribute('data-theme') || 'light';
+                const alerts = document.querySelectorAll('.theme-aware-alert');
+
+                alerts.forEach(alert => {
+                    const alertType = alert.classList.contains('alert-success') ? 'success' :
+                                    alert.classList.contains('alert-error') ? 'error' :
+                                    alert.classList.contains('alert-danger') ? 'danger' :
+                                    'info';
+
+                    // Применяем цвета напрямую через style
+                    if (theme === 'dark') {
+                        if (alertType === 'success') {
+                            alert.style.backgroundColor = '#1a3a1e';
+                            alert.style.color = '#d4edda';
+                            alert.style.borderColor = '#2a5c2f';
+                        } else if (alertType === 'error' || alertType === 'danger') {
+                            alert.style.backgroundColor = '#3a1a1a';
+                            alert.style.color = '#ffb3b3';
+                            alert.style.borderColor = '#5c2a2a';
+                        } else {
+                            alert.style.backgroundColor = '#1a2e3a';
+                            alert.style.color = '#d1ecf1';
+                            alert.style.borderColor = '#2a4c5c';
+                        }
+                    } else {
+                        if (alertType === 'success') {
+                            alert.style.backgroundColor = '#d4edda';
+                            alert.style.color = '#155724';
+                            alert.style.borderColor = '#c3e6cb';
+                        } else if (alertType === 'error' || alertType === 'danger') {
+                            alert.style.backgroundColor = '#f8d7da';
+                            alert.style.color = '#721c24';
+                            alert.style.borderColor = '#f5c6cb';
+                        } else {
+                            alert.style.backgroundColor = '#d1ecf1';
+                            alert.style.color = '#0c5460';
+                            alert.style.borderColor = '#bee5eb';
+                        }
+                    }
+                });
             }
-            
-            // Проверяем сохраненную тему при загрузке и обновляем иконки
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                // Только обновляем иконки, тема уже применена ранним скриптом
-                if (savedTheme === 'dark') {
-                    darkIcon.style.display = 'none';
-                    lightIcon.style.display = 'inline-block';
-                }
-            }
-            
-            // Добавляем обработчик для кнопки переключения
-            themeToggle.addEventListener('click', toggleTheme);
+
+            // Инициализация при загрузке
+            updateAlertColors();
+
+            // Отслеживание изменений темы
+            new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'data-theme') {
+                        updateAlertColors();
+                    }
+                });
+            }).observe(document.documentElement, {
+                attributes: true
+            });
         });
     </script>
 </body>
 </html>
-

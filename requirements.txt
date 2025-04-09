@@ -4,3 +4,4 @@ python-magic==0.4.27
 sqlparse==0.5.3
 tzdata==2025.1
 requests==2.32.3
+dotenv==0.9.9

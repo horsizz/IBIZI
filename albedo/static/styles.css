@@ -8,6 +8,17 @@
     --input-bg: #ffffff;
     --input-text: #495057;
     --accent-color: #007bff;
+
+    /* Новые переменные для алертов */
+    --alert-success-bg: #d4edda;
+    --alert-success-text: #155724;
+    --alert-success-border: #c3e6cb;
+    --alert-error-bg: #f8d7da;
+    --alert-error-text: #721c24;
+    --alert-error-border: #f5c6cb;
+    --alert-info-bg: #d1ecf1;
+    --alert-info-text: #0c5460;
+    --alert-info-border: #bee5eb;
 }
 
 [data-theme="dark"] {
@@ -20,32 +31,68 @@
     --input-bg: #343a40;
     --input-text: #e9ecef;
     --accent-color: #0d6efd;
+
+    /* Темная тема для алертов */
+    --alert-success-bg: #1a3a1e;
+    --alert-success-text: #d4edda;
+    --alert-success-border: #2a5c2f;
+    --alert-error-bg: #3a1a1a;
+    --alert-error-text: #ffb3b3;
+    --alert-error-border: #5c2a2a;
+    --alert-info-bg: #1a2e3a;
+    --alert-info-text: #d1ecf1;
+    --alert-info-border: #2a4c5c;
 }
 
+/* Базовые стили */
 body {
     font-family: Arial, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
     padding: 0;
-    transition: background-color 0.1s ease, color 0.1s ease; /* Reduced color transition time */
+    transition: background-color 0.1s ease, color 0.1s ease;
 }
 
-/* Добавляем плавные переходы для всех элементов */
 * {
     transition: background-color 0.1s ease, color 0.05s ease, border-color 0.1s ease, box-shadow 0.1s ease;
 }
 
-/* Исключаем из переходов элементы, для которых они могут вызывать проблемы */
-.fa, .fas, .fa-moon, .fa-sun, button, .btn, .theme-toggle {
-    transition: background-color 0.1s ease, transform 0.1s ease !important;
+/* Стили для алертов - полное переопределение */
+.alert {
+    padding: 15px 20px !important;
+    margin: 15px auto !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    max-width: 600px !important;
+    text-align: center !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    position: relative !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
 }
 
-/* Быстрые переходы для текстовых элементов */
-p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th {
-    transition: color 0.05s ease !important;
+.alert-success {
+    background-color: var(--alert-success-bg) !important;
+    color: var(--alert-success-text) !important;
+    border-color: var(--alert-success-border) !important;
 }
 
+.alert-error,
+.alert-danger {
+    background-color: var(--alert-error-bg) !important;
+    color: var(--alert-error-text) !important;
+    border-color: var(--alert-error-border) !important;
+}
+
+.alert-info {
+    background-color: var(--alert-info-bg) !important;
+    color: var(--alert-info-text) !important;
+    border-color: var(--alert-info-border) !important;
+}
+
+/* Остальные стили остаются без изменений */
 .header-container {
     background-color: var(--header-bg);
     color: var(--header-text);
@@ -53,93 +100,7 @@ p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th {
     text-align: center;
 }
 
-.header-container h1 {
-    margin: 0;
-}
-
-.header-container .button {
-    background-color: var(--accent-color);
-    color: white;
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: 5px;
-    margin-top: 10px;
-    display: inline-block;
-}
-
-.header-container .button:hover {
-    background-color: #0056b3;
-}
-
-.con {
-    padding: 20px;
-    text-align: center;
-}
-
-.text-container {
-    display: block;
-    text-align: center;
-    margin: 20px 0;
-    color: var(--accent-color);
-    text-decoration: none;
-}
-
-.text-container:hover {
-    text-decoration: underline;
-}
-
-/* Стили для темной темы */
-[data-theme="dark"] .card {
-    background-color: var(--card-bg);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .card-body {
-    background-color: var(--card-bg);
-}
-
-[data-theme="dark"] .form-control {
-    background-color: var(--input-bg);
-    color: var(--input-text);
-    border-color: var(--border-color);
-}
-
-[data-theme="dark"] .form-control:focus {
-    background-color: var(--input-bg);
-    color: var(--input-text);
-}
-
-[data-theme="dark"] .navbar-dark {
-    background-color: var(--header-bg) !important;
-}
-
-[data-theme="dark"] .table {
-    color: var(--text-color);
-}
-
-[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(255,255,255,0.05);
-}
-
-[data-theme="dark"] .modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-}
-
-/* Кнопка переключения темы */
-.theme-toggle {
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s;
-}
-
-.theme-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-}
+/* ... остальные ваши стили ... */
 
 .password-toggle {
     position: absolute;
@@ -163,9 +124,4 @@ p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th {
 input[type="password"],
 input.password-visible {
     padding-right: 35px;
-}
-
-.alert{
-    display: flex;    ;
-    justify-content: center;
 }
