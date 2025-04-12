@@ -8,9 +8,8 @@ import os
 from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
 from django.utils.text import slugify
-from .utils import secure_file_upload  # Импортируем новую функцию
 from .utils import secure_file_upload
-from django.db.models import Prefetch# Импортируем новую функцию
+from django.db.models import Prefetch
 from django.db import models
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode
@@ -22,8 +21,6 @@ from django.contrib.auth.tokens import default_token_generator
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from config import settings
-from django.shortcuts import render
 
 
 def home(request):
