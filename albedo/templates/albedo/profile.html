@@ -164,5 +164,10 @@
 
         document.getElementById(tabName + '-tab').classList.add('active');
     }
+    
+    // Активируем вкладку "Мои решения" по умолчанию при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        switchTab('solutions');
+    });
 </script>
 {% endblock %}
