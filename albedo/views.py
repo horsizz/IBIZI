@@ -147,43 +147,61 @@ def create_event(request):
         
     if request.method == 'POST':
         form = EventForm(request.POST, request.FILES)
+        
+        # Проверяем наличие файла как на уровне формы, так и на уровне представления
+        if 'uploaded_file' not in request.FILES:
+            messages.error(request, 'Необходимо прикрепить файл к событию.')
+            return render(request, 'albedo/event_form.html', {'form': form})
+            
         if form.is_valid():
             event = form.save(commit=False)
             event.user = request.user
             
             # Обработка загрузки файла с проверками безопасности
-            if 'uploaded_file' in request.FILES:
-                uploaded_file = request.FILES['uploaded_file']
-                
-                # Создаем директорию для загрузки, если она не существует
-                upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
-                
-                # Используем нашу функцию безопасной загрузки
-                file_info, errors = secure_file_upload(uploaded_file, upload_dir)
-                
-                if errors:
-                    for error in errors:
-                        messages.error(request, error)
-                    return render(request, 'albedo/event_form.html', {'form': form})
-                
-                # Создаем новый объект File
-                file_obj = File(
-                    file_name=file_info['file_name'],
-                    size=file_info['size'],
-                    file_path=file_info['file_path'],
-                    mime_type=file_info['mime_type']
-                )
-                
-                # Если файл загружен в Cloudinary, сохраняем URL
-                if 'cloudinary_url' in file_info:
-                    file_obj.cloudinary_url = file_info['cloudinary_url']
-                    
-                file_obj.save()
-                
-                # Связываем файл с событием
-                event.file = file_obj
+            uploaded_file = request.FILES['uploaded_file']
             
+            # Создаем директорию для загрузки, если она не существует
+            upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+            
+            # Используем нашу функцию безопасной загрузки
+            file_info, errors = secure_file_upload(uploaded_file, upload_dir)
+            
+            if errors:
+                for error in errors:
+                    messages.error(request, error)
+                return render(request, 'albedo/event_form.html', {'form': form})
+            
+            # Создаем новый объект File
+            file_obj = File(
+                file_name=file_info['file_name'],
+                size=file_info['size'],
+                file_path=file_info['file_path'],
+                mime_type=file_info['mime_type']
+            )
+            
+            # Проверяем, есть ли cloudinary_url в file_info и можно ли добавить это поле в модель
+            # Используем try-except для обработки возможных ошибок с отсутствующим полем
+            try:
+                if 'cloudinary_url' in file_info:
+                    # Проверяем, существует ли поле cloudinary_url в модели
+                    if hasattr(File, 'cloudinary_url'):
+                        file_obj.cloudinary_url = file_info['cloudinary_url']
+            except Exception as e:
+                # Логируем ошибку, но позволяем процессу продолжиться
+                print(f"Ошибка при установке cloudinary_url: {str(e)}")
+                
+            # Сохраняем объект файла
+            try:
+                file_obj.save()
+            except Exception as e:
+                print(f"Ошибка при сохранении файла: {str(e)}")
+                messages.error(request, f"Ошибка при загрузке файла: {str(e)}")
+                return render(request, 'albedo/event_form.html', {'form': form})
+            
+            # Связываем файл с событием
+            event.file = file_obj
             event.save()
+            
             messages.success(request, 'Событие успешно создано!')
             return redirect('event_detail', event_id=event.id)
     else:
@@ -277,11 +295,20 @@ def add_solution(request, event_id):
                     mime_type=file_info['mime_type']
                 )
                 
-                # Если файл загружен в Cloudinary, сохраняем URL
-                if 'cloudinary_url' in file_info:
-                    file_obj.cloudinary_url = file_info['cloudinary_url']
+                # Безопасно устанавливаем cloudinary_url, если он есть
+                try:
+                    if 'cloudinary_url' in file_info and hasattr(File, 'cloudinary_url'):
+                        file_obj.cloudinary_url = file_info['cloudinary_url']
+                except Exception as e:
+                    print(f"Ошибка при установке cloudinary_url: {str(e)}")
                 
-                file_obj.save()
+                # Сохраняем объект файла с обработкой ошибок
+                try:
+                    file_obj.save()
+                except Exception as e:
+                    print(f"Ошибка при сохранении файла: {str(e)}")
+                    messages.error(request, f"Ошибка при загрузке файла: {str(e)}")
+                    return render(request, 'albedo/solution_form.html', {'form': form, 'event': event})
                 
                 # Связываем файл с решением
                 solution.file = file_obj
