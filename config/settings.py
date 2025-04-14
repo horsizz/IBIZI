@@ -195,6 +195,18 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    
+    # Важные настройки для статических файлов в продакшн-режиме
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    
+    # Убедимся, что WhiteNoise правильно настроен
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    
+    # Используем более подходящее хранилище для статики в продакшн
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    # Для режима разработки используем обычное хранилище
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Настройки для хранения файлов
 USE_CLOUDINARY = False  # Отключаем Cloudinary
