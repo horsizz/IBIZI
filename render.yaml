@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ibizi
+    env: python
+    buildCommand: bash build.sh
+    startCommand: gunicorn config.wsgi
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: DEBUG
+        value: "False"
