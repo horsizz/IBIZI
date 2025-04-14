@@ -227,20 +227,25 @@ def download_file(request, file_id):
             elif ext in ['.mp4', '.mov', '.avi']:
                 resource_type = "video"
             
-            # Создаем URL для скачивания через delivery API Cloudinary
-            # Заменяем прямую генерацию URL на API вызов
-            
-            # Получаем имя файла без пути
-            file_name = os.path.basename(file_obj.file_path)
-            
-            # Получаем путь папки без имени файла
-            folder_path = os.path.dirname(file_obj.file_path)
-            
             # Формируем правильный URL для скачивания
-            download_url = cloudinary.CloudinaryResource(
-                file_obj.file_path,
-                resource_type=resource_type
-            ).url(attachment=True)
+            # Используем другой подход для создания URL
+            public_id = file_obj.file_path
+            
+            # Формируем URL с флагом attachment=true для прямого скачивания
+            from urllib.parse import urlencode
+            
+            # Базовый URL для Cloudinary
+            cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', 'dcn4ojtz0')
+            base_url = f"https://res.cloudinary.com/{cloud_name}/{resource_type}/upload"
+            
+            # Параметры для скачивания
+            params = {"fl_attachment": "true"}
+            query_string = urlencode(params)
+            
+            # Объединяем части URL
+            download_url = f"{base_url}/{public_id}?{query_string}"
+            
+            print(f"DEBUG - Download URL: {download_url}")
             
             # Перенаправляем на URL для скачивания
             return redirect(download_url)
