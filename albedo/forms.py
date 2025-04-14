@@ -117,9 +117,10 @@ class UserRegistrationForm(UserCreationForm):
 
 class EventForm(forms.ModelForm):
     uploaded_file = forms.FileField(
-        required=False, 
+        required=True,  # Изменяем на True, чтобы файл был обязательным
         label="Файл",
-        validators=[validate_file_extension, validate_file_size, validate_file_viruses]
+        validators=[validate_file_extension, validate_file_size, validate_file_viruses],
+        help_text="Загрузите файл. Это обязательное поле."
     )
     
     class Meta:
