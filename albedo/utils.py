@@ -162,6 +162,14 @@ def secure_file_upload(file, upload_dir):
                 flags="attachment"
             )[0]
             
+            # Создаем URL для предварительного просмотра (без флага attachment)
+            preview_url = cloudinary.utils.cloudinary_url(
+                public_id,
+                resource_type=resource_type,
+                type="upload",
+                secure=True
+            )[0]
+            
             # Проверяем, существует ли колонка cloudinary_url в таблице albedo_file
             with connection.cursor() as cursor:
                 try:
@@ -176,12 +184,10 @@ def secure_file_upload(file, upload_dir):
                 'safe_name': safe_filename,
                 'file_path': public_id,
                 'size': file.size,
-                'mime_type': mime_type
+                'mime_type': mime_type,
+                'cloudinary_url': download_url,  # URL для скачивания
+                'preview_url': preview_url       # URL для предварительного просмотра
             }
-            
-            # Добавляем cloudinary_url только если колонка существует
-            if has_cloudinary_url:
-                file_info['cloudinary_url'] = download_url
             
             return file_info, None
             
