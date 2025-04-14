@@ -166,6 +166,11 @@ def create_event(request):
                     file_path=file_info['file_path'],
                     mime_type=file_info['mime_type']
                 )
+                
+                # Если файл загружен в Cloudinary, сохраняем URL
+                if 'cloudinary_url' in file_info:
+                    file_obj.cloudinary_url = file_info['cloudinary_url']
+                    
                 file_obj.save()
                 
                 # Связываем файл с событием
@@ -184,31 +189,47 @@ def download_file(request, file_id):
     file_obj = get_object_or_404(File, id=file_id)
     
     if settings.USE_CLOUDINARY:
-        # Если используется Cloudinary для хранения
+        # Проверяем, есть ли сохраненный URL от Cloudinary
+        if file_obj.cloudinary_url:
+            # Используем сохраненный cloudinary_url напрямую
+            return redirect(file_obj.cloudinary_url)
+        
+        # Если URL не сохранен, пробуем сгенерировать его с правильными параметрами
         import cloudinary
+        import cloudinary.uploader
         import cloudinary.api
         
         try:
-            # Получаем ссылку на файл из Cloudinary
-            # Для скачивания файла создаем URL с флагом attachment
-            url = cloudinary.utils.cloudinary_url(
+            # Определяем тип ресурса на основе расширения файла
+            name, ext = os.path.splitext(file_obj.file_name.lower())
+            resource_type = "raw"  # По умолчанию для документов
+            if ext in ['.jpg', '.jpeg', '.png', '.gif']:
+                resource_type = "image"
+            elif ext in ['.mp4', '.mov', '.avi']:
+                resource_type = "video"
+            
+            # Создаем URL для скачивания с параметром fl_attachment
+            download_url = cloudinary.utils.cloudinary_url(
                 file_obj.file_path,
-                attachment=True,  # Это важно для скачивания файла
-                filename=file_obj.file_name
+                resource_type=resource_type,
+                type="upload",
+                flags="attachment"
             )[0]
             
-            # Перенаправляем пользователя на прямую ссылку для скачивания
-            return redirect(url)
+            # Сохраняем URL для будущего использования
+            file_obj.cloudinary_url = download_url
+            file_obj.save(update_fields=['cloudinary_url'])
+            
+            # Перенаправляем на URL для скачивания
+            return redirect(download_url)
         except Exception as e:
             messages.error(request, f'Ошибка при получении файла: {str(e)}')
             return redirect('event_list')
     else:
-        # Если используется локальная файловая система
+        # Локальная файловая система (без изменений)
         file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
         
-        # Проверяем существование файла
         if os.path.exists(file_path):
-            # Возвращаем файл как ответ с правильным именем
             response = FileResponse(open(file_path, 'rb'))
             response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
             return response
@@ -257,6 +278,11 @@ def add_solution(request, event_id):
                     file_path=file_info['file_path'],
                     mime_type=file_info['mime_type']
                 )
+                
+                # Если файл загружен в Cloudinary, сохраняем URL
+                if 'cloudinary_url' in file_info:
+                    file_obj.cloudinary_url = file_info['cloudinary_url']
+                
                 file_obj.save()
                 
                 # Связываем файл с решением
