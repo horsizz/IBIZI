@@ -227,33 +227,35 @@ def download_file(request, file_id):
             elif ext in ['.mp4', '.mov', '.avi']:
                 resource_type = "video"
             
-            # Формируем правильный URL для скачивания
-            # В Cloudinary публичный ID не должен содержать префиксы папок, которые используются в URL
-            # Например, если file_path = "uploads/4e47dba8/8eb76ce3c301.jpg", то для Cloudinary
-            # правильный public_id = "4e47dba8/8eb76ce3c301.jpg" без префикса "uploads/"
-            
+            # Получаем имя облака из настроек
+            cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME')
+            if not cloud_name:
+                # Если CLOUD_NAME не установлен в CLOUDINARY_STORAGE, получаем его из конфигурации cloudinary
+                cloud_name = cloudinary.config().cloud_name
+                
+            if not cloud_name:
+                raise ValueError("Cloudinary cloud_name не настроен")
+                
+            # Формируем правильный public_id для Cloudinary
             public_id = file_obj.file_path
             
-            # Если public_id содержит префикс папки (например uploads/), удаляем его
-            # потому что этот префикс уже используется в URL Cloudinary
+            # Если public_id содержит префикс папки, обрабатываем его
+            folder_prefix = ""
             if '/' in public_id:
                 parts = public_id.split('/')
                 if parts[0] in ['uploads', 'solutions']:
+                    folder_prefix = parts[0] + "/"
                     public_id = '/'.join(parts[1:])
             
-            # Формируем URL с флагом attachment=true для прямого скачивания
-            from urllib.parse import urlencode
-            
-            # Базовый URL для Cloudinary
-            cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', 'dcn4ojtz0')
-            base_url = f"https://res.cloudinary.com/{cloud_name}/{resource_type}/upload"
-            
-            # Параметры для скачивания
-            params = {"fl_attachment": "true"}
-            query_string = urlencode(params)
-            
-            # Объединяем части URL
-            download_url = f"{base_url}/{public_id}?{query_string}"
+            # Используем функцию cloudinary.utils.cloudinary_url для создания корректного URL
+            download_url = cloudinary.utils.cloudinary_url(
+                folder_prefix + public_id,
+                resource_type=resource_type,
+                type="upload",
+                secure=True,
+                format=ext.lstrip('.') if ext else None,
+                attachment=True
+            )[0]
             
             print(f"DEBUG - Download URL: {download_url}")
             
