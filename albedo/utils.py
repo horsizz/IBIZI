@@ -5,6 +5,8 @@ import hashlib
 import uuid
 import boto3
 from django.conf import settings
+import inspect
+from django.db import connection
 
 # Определяем безопасные расширения
 ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.txt', '.zip']
@@ -160,15 +162,26 @@ def secure_file_upload(file, upload_dir):
                 flags="attachment"
             )[0]
             
+            # Проверяем, существует ли колонка cloudinary_url в таблице albedo_file
+            with connection.cursor() as cursor:
+                try:
+                    cursor.execute("SELECT cloudinary_url FROM albedo_file LIMIT 1")
+                    has_cloudinary_url = True
+                except Exception:
+                    has_cloudinary_url = False
+            
             # Возвращаем информацию о файле
             file_info = {
                 'file_name': file.name,
                 'safe_name': safe_filename,
                 'file_path': public_id,
-                'cloudinary_url': download_url,  # URL для скачивания
                 'size': file.size,
                 'mime_type': mime_type
             }
+            
+            # Добавляем cloudinary_url только если колонка существует
+            if has_cloudinary_url:
+                file_info['cloudinary_url'] = download_url
             
             return file_info, None
             
