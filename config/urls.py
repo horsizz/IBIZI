@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns  # Импорт для статических файлов
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,3 +29,10 @@ urlpatterns = [
 # Add this to serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Всегда обслуживать статические файлы для диагностики проблемы
+# Обычно это не рекомендуется для продакшн, но поможет в отладке
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Добавляем staticfiles_urlpatterns, который использует django.contrib.staticfiles для обслуживания
+urlpatterns += staticfiles_urlpatterns()

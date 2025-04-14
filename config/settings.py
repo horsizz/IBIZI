@@ -134,7 +134,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'  # Обратите внимание на слеш в начале и в конце
 STATICFILES_DIRS = [
     BASE_DIR / 'albedo' / 'static',
 ]
@@ -185,10 +185,7 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_SECURE = False  # В production изменить на True
 CSRF_COOKIE_SECURE = False  # В production изменить на True
 
-# Настройки WhiteNoise для статических файлов в продакшн-среде
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Настройки для хостинга на Render.com
+# Настройки для статических файлов
 if not DEBUG:
     # Включаем HTTPS-настройки для продакшн-среды
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -196,13 +193,7 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # Важные настройки для статических файлов в продакшн-режиме
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    
-    # Убедимся, что WhiteNoise правильно настроен
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    
-    # Используем более подходящее хранилище для статики в продакшн
+    # Используем WhiteNoise для сжатия и хэширования статических файлов в продакшн
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
     # Для режима разработки используем обычное хранилище
