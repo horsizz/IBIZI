@@ -214,7 +214,6 @@ def download_file(request, file_id):
     file_obj = get_object_or_404(File, id=file_id)
     
     if settings.USE_CLOUDINARY:
-        # Используем Cloudinary - генерируем URL для скачивания напрямую без использования cloudinary_url из базы
         import cloudinary
         import cloudinary.uploader
         import cloudinary.api
@@ -228,21 +227,29 @@ def download_file(request, file_id):
             elif ext in ['.mp4', '.mov', '.avi']:
                 resource_type = "video"
             
-            # Создаем URL для скачивания с параметром fl_attachment
-            download_url = cloudinary.utils.cloudinary_url(
+            # Создаем URL для скачивания через delivery API Cloudinary
+            # Заменяем прямую генерацию URL на API вызов
+            
+            # Получаем имя файла без пути
+            file_name = os.path.basename(file_obj.file_path)
+            
+            # Получаем путь папки без имени файла
+            folder_path = os.path.dirname(file_obj.file_path)
+            
+            # Формируем правильный URL для скачивания
+            download_url = cloudinary.CloudinaryResource(
                 file_obj.file_path,
-                resource_type=resource_type,
-                type="upload",
-                flags="attachment"
-            )[0]
+                resource_type=resource_type
+            ).url(attachment=True)
             
             # Перенаправляем на URL для скачивания
             return redirect(download_url)
         except Exception as e:
+            print(f"Ошибка при скачивании: {str(e)}")
             messages.error(request, f'Ошибка при получении файла: {str(e)}')
             return redirect('event_list')
     else:
-        # Локальная файловая система (без изменений)
+        # Локальная файловая система
         file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
         
         if os.path.exists(file_path):
