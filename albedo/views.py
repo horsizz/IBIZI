@@ -186,16 +186,14 @@ def download_file(request, file_id):
     if settings.USE_CLOUDINARY:
         # Если используется Cloudinary для хранения
         import cloudinary
+        import cloudinary.api
         
         try:
             # Получаем ссылку на файл из Cloudinary
-            resource = cloudinary.api.resource(file_obj.file_path)
-            url = resource['secure_url']
-            
-            # В некоторых случаях может потребоваться добавить заголовок для скачивания
+            # Для скачивания файла создаем URL с флагом attachment
             url = cloudinary.utils.cloudinary_url(
                 file_obj.file_path,
-                attachment=True,
+                attachment=True,  # Это важно для скачивания файла
                 filename=file_obj.file_name
             )[0]
             
