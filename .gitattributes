@@ -1,0 +1,10 @@
+# Устанавливаем формат LF для shell-скриптов
+*.sh text eol=lf
+
+# Устанавливаем формат LF для конфигурационных файлов
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+
+# Устанавливаем формат LF для Python файлов
+*.py text eol=lf
