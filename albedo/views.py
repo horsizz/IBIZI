@@ -219,6 +219,14 @@ def download_file(request, file_id):
         import cloudinary.api
         
         try:
+            # Проверяем сначала, есть ли сохраненный cloudinary_url
+            if file_obj.cloudinary_url:
+                # Добавляем fl_attachment=true к URL, если его еще нет
+                url = file_obj.cloudinary_url
+                if "?fl_attachment=true" not in url and "?fl_attachment=" not in url:
+                    url = f"{url}{'&' if '?' in url else '?'}fl_attachment=true"
+                return redirect(url)
+                
             # Определяем тип ресурса на основе расширения файла
             name, ext = os.path.splitext(file_obj.file_name.lower())
             resource_type = "raw"  # По умолчанию для документов
@@ -235,11 +243,25 @@ def download_file(request, file_id):
                 
             if not cloud_name:
                 raise ValueError("Cloudinary cloud_name не настроен")
-                
+            
             # Формируем правильный public_id для Cloudinary
+            # Удаляем возможные дубликаты расширений в file_path
             public_id = file_obj.file_path
             
-            # Если public_id содержит префикс папки, обрабатываем его
+            # Если public_id содержит расширение такое же, как в file_name, удаляем его
+            if public_id.endswith(ext):
+                base_name = public_id[:-len(ext)]
+                # Проверяем, нет ли дублирования расширения
+                if base_name.endswith(ext):
+                    public_id = base_name  # Убираем дублирование
+                elif '.' in os.path.basename(base_name):
+                    # Если есть другое расширение, удаляем его
+                    filename = os.path.basename(base_name)
+                    dir_path = os.path.dirname(base_name)
+                    name_without_ext, _ = os.path.splitext(filename)
+                    public_id = os.path.join(dir_path, name_without_ext) if dir_path else name_without_ext
+            
+            # Обрабатываем префикс папки
             folder_prefix = ""
             if '/' in public_id:
                 parts = public_id.split('/')
@@ -247,17 +269,26 @@ def download_file(request, file_id):
                     folder_prefix = parts[0] + "/"
                     public_id = '/'.join(parts[1:])
             
+            # Генерируем URL с использованием cloudinary_url без указания формата
+            options = {
+                'resource_type': resource_type,
+                'type': 'upload',
+                'secure': True
+            }
+            
+            # Добавляем attachment для скачивания
+            options['flags'] = 'attachment'
+            
             # Используем функцию cloudinary.utils.cloudinary_url для создания корректного URL
+            print(f"DEBUG - Public ID: {folder_prefix + public_id}")
+            print(f"DEBUG - Resource Type: {resource_type}")
+            
             download_url = cloudinary.utils.cloudinary_url(
                 folder_prefix + public_id,
-                resource_type=resource_type,
-                type="upload",
-                secure=True,
-                format=ext.lstrip('.') if ext else None,
-                attachment=True
+                **options
             )[0]
             
-            print(f"DEBUG - Download URL: {download_url}")
+            print(f"DEBUG - Generated Download URL: {download_url}")
             
             # Перенаправляем на URL для скачивания
             return redirect(download_url)
