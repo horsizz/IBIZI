@@ -139,6 +139,31 @@ class EventForm(forms.ModelForm):
         widgets = {
             'limit_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
+        labels = {
+            'title': 'Заголовок',
+            'description': 'Описание',
+            'limit_date': 'Срок сдачи',
+        }
+        help_texts = {
+            'title': 'Введите название события',
+            'description': 'Подробное описание события',
+            'limit_date': 'Укажите дату и время окончания приема решений',
+        }
+    
+    def clean_limit_date(self):
+        """
+        Проверяет, что срок сдачи не находится в прошлом
+        """
+        limit_date = self.cleaned_data.get('limit_date')
+        
+        if limit_date:
+            from django.utils import timezone
+            now = timezone.now()
+            
+            if limit_date < now:
+                raise forms.ValidationError('Срок сдачи не может быть в прошлом. Укажите актуальную дату.')
+        
+        return limit_date
 
 class SolutionForm(forms.ModelForm):
     file = forms.FileField(
@@ -150,3 +175,9 @@ class SolutionForm(forms.ModelForm):
     class Meta:
         model = Solution
         fields = ['description']
+        labels = {
+            'description': 'Описание',
+        }
+        help_texts = {
+            'description': 'Опишите ваше решение',
+        }

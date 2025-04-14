@@ -23,13 +23,17 @@ class User(AbstractUser):
 
 
 class File(models.Model):
-    file_name = models.CharField(max_length=255)
-    size = models.PositiveIntegerField()
-    file_path = models.CharField(max_length=255)
-    mime_type = models.CharField(max_length=50)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    cloudinary_url = models.URLField(max_length=1000, blank=True, null=True)  # Добавляем поле для хранения Cloudinary URL
-    preview_url = models.URLField(max_length=1000, blank=True, null=True)  # URL для предварительного просмотра
+    file_name = models.CharField(max_length=255, verbose_name="Имя файла")
+    size = models.PositiveIntegerField(verbose_name="Размер")
+    file_path = models.CharField(max_length=255, verbose_name="Путь к файлу")
+    mime_type = models.CharField(max_length=50, verbose_name="MIME тип")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+    cloudinary_url = models.URLField(max_length=1000, blank=True, null=True, verbose_name="Cloudinary URL")
+    preview_url = models.URLField(max_length=1000, blank=True, null=True, verbose_name="URL предпросмотра")
+
+    class Meta:
+        verbose_name = "Файл"
+        verbose_name_plural = "Файлы"
 
     def __str__(self):
         return self.file_name
@@ -37,24 +41,26 @@ class File(models.Model):
 
 class Event(models.Model):
     STATUS_CHOICES = (
-        ('in_progress', 'In Progress'),
-        ('closed', 'Closed'),
+        ('in_progress', 'В процессе'),
+        ('closed', 'Закрыто'),
     )
 
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=255, verbose_name="Заголовок")
+    description = models.TextField(blank=True, verbose_name="Описание")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     status = models.CharField(
         max_length=11,
         choices=STATUS_CHOICES,
-        default='in_progress'
+        default='in_progress',
+        verbose_name="Статус"
     )
-    limit_date = models.DateTimeField(null=True, blank=True)
+    limit_date = models.DateTimeField(null=True, blank=True, verbose_name="Срок сдачи")
     # Связь с пользователем (кто создал или владеет ивентом)
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='events'
+        related_name='events',
+        verbose_name="Пользователь"
     )
     # Связь с файлом (например, общий файл или описание)
     file = models.ForeignKey(
@@ -62,8 +68,13 @@ class Event(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='events'
+        related_name='events',
+        verbose_name="Файл"
     )
+
+    class Meta:
+        verbose_name = "Событие"
+        verbose_name_plural = "События"
 
     def __str__(self):
         return self.title
@@ -73,22 +84,29 @@ class Solution(models.Model):
     event = models.ForeignKey(
         Event,
         on_delete=models.CASCADE,
-        related_name='solutions'
+        related_name='solutions',
+        verbose_name="Событие"
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='solutions'
+        related_name='solutions',
+        verbose_name="Пользователь"
     )
     file = models.ForeignKey(
         File,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='solutions'
+        related_name='solutions',
+        verbose_name="Файл"
     )
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.TextField(blank=True, verbose_name="Описание")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+
+    class Meta:
+        verbose_name = "Решение"
+        verbose_name_plural = "Решения"
 
     def __str__(self):
-        return f"Solution by {self.user.username} for {self.event.title}"
+        return f"Решение от {self.user.username} для {self.event.title}"
