@@ -3,6 +3,8 @@ import re
 import mimetypes
 import hashlib
 import uuid
+import boto3
+from django.conf import settings
 
 # Определяем безопасные расширения
 ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.txt', '.zip']
@@ -33,13 +35,31 @@ def check_double_extensions(filename):
 
 def sanitize_filename(filename):
     """
-    Создает безопасное имя файла, сохраняя расширение
+    Создает безопасное имя файла с уникальным идентификатором
     """
-    base, ext = os.path.splitext(filename)
-    # Генерируем уникальное имя файла на основе UUID и хэша оригинального имени
-    name_hash = hashlib.md5(base.encode()).hexdigest()[:8]
-    safe_name = f"{uuid.uuid4().hex}_{name_hash}{ext}"
+    # Получаем базовое имя без пути
+    base = os.path.basename(filename)
+    
+    # Получаем расширение
+    name, ext = os.path.splitext(base)
+    
+    # Создаем хеш для уникальности
+    unique_id = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
+    
+    # Создаем безопасное имя
+    safe_name = f"{name}_{unique_id}{ext}"
+    
+    # Заменяем небезопасные символы
+    safe_name = re.sub(r'[^a-zA-Z0-9_.-]', '_', safe_name)
+    
     return safe_name
+
+def get_simple_mime_type(filename):
+    """
+    Получает MIME-тип файла на основе его расширения
+    """
+    mime, _ = mimetypes.guess_type(filename)
+    return mime or 'application/octet-stream'
 
 def scan_file_content(file):
     """
@@ -62,13 +82,6 @@ def scan_file_content(file):
             return False
     
     return True
-
-def get_simple_mime_type(filename):
-    """
-    Получает MIME тип на основе расширения файла
-    """
-    mime_type, _ = mimetypes.guess_type(filename)
-    return mime_type or 'application/octet-stream'  # Возвращаем generic type если не определен
 
 def secure_file_upload(file, upload_dir):
     """
@@ -99,28 +112,70 @@ def secure_file_upload(file, upload_dir):
     # Если все проверки пройдены, создаем безопасное имя файла
     safe_filename = sanitize_filename(file.name)
     
-    # Создаем директорию, если она не существует
-    os.makedirs(upload_dir, exist_ok=True)
-    file_path = os.path.join(upload_dir, safe_filename)
-    
-    # Создаем относительный путь для хранения в базе
-    relative_path = os.path.join(os.path.basename(upload_dir), safe_filename)
-    
     # Определяем MIME тип на основе расширения
     mime_type = get_simple_mime_type(file.name)
     
-    # Сохраняем файл
-    with open(file_path, 'wb+') as destination:
-        for chunk in file.chunks():
-            destination.write(chunk)
+    # Создаем поддиректорию на основе хеша для лучшей организации
+    subdir = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
     
-    # Возвращаем информацию о файле
-    file_info = {
-        'file_name': file.name,  # Оригинальное имя для отображения
-        'safe_name': safe_filename,  # Безопасное имя в файловой системе
-        'file_path': relative_path,  # Путь для хранения в базе
-        'size': file.size,
-        'mime_type': mime_type
-    }
-    
-    return file_info, None
+    if settings.USE_CLOUDINARY:
+        # Загружаем файл в Cloudinary
+        import cloudinary
+        import cloudinary.uploader
+        
+        try:
+            # Определяем путь хранения файла в Cloudinary
+            cloudinary_folder = os.path.basename(upload_dir)
+            public_id = f"{cloudinary_folder}/{subdir}/{safe_filename}"
+            
+            # Загружаем файл в Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                file,
+                public_id=public_id,
+                resource_type="auto",
+                overwrite=False
+            )
+            
+            # Возвращаем информацию о файле
+            file_info = {
+                'file_name': file.name,
+                'safe_name': safe_filename,
+                'file_path': public_id,  # Cloudinary public_id для дальнейшего доступа
+                'size': file.size,
+                'mime_type': mime_type
+            }
+            
+            return file_info, None
+            
+        except Exception as e:
+            errors.append(f"Ошибка при загрузке файла в облачное хранилище: {str(e)}")
+            return None, errors
+    else:
+        # Загружаем файл локально
+        try:
+            # Создаем директорию, если она не существует
+            local_dir = os.path.join(upload_dir, subdir)
+            os.makedirs(local_dir, exist_ok=True)
+            
+            file_path = os.path.join(local_dir, safe_filename)
+            relative_path = os.path.join(os.path.basename(upload_dir), subdir, safe_filename)
+            
+            # Сохраняем файл
+            with open(file_path, 'wb+') as destination:
+                for chunk in file.chunks():
+                    destination.write(chunk)
+            
+            # Возвращаем информацию о файле
+            file_info = {
+                'file_name': file.name,
+                'safe_name': safe_filename,
+                'file_path': relative_path,
+                'size': file.size,
+                'mime_type': mime_type
+            }
+            
+            return file_info, None
+            
+        except Exception as e:
+            errors.append(f"Ошибка при сохранении файла: {str(e)}")
+            return None, errors

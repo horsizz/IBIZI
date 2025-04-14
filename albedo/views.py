@@ -183,17 +183,40 @@ def download_file(request, file_id):
     """View to download a file by its ID"""
     file_obj = get_object_or_404(File, id=file_id)
     
-    # Construct full path to file
-    file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
-    
-    # Check if file exists
-    if os.path.exists(file_path):
-        # Return file as response with proper filename
-        response = FileResponse(open(file_path, 'rb'))
-        response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
-        return response
+    if settings.USE_CLOUDINARY:
+        # Если используется Cloudinary для хранения
+        import cloudinary
+        
+        try:
+            # Получаем ссылку на файл из Cloudinary
+            resource = cloudinary.api.resource(file_obj.file_path)
+            url = resource['secure_url']
+            
+            # В некоторых случаях может потребоваться добавить заголовок для скачивания
+            url = cloudinary.utils.cloudinary_url(
+                file_obj.file_path,
+                attachment=True,
+                filename=file_obj.file_name
+            )[0]
+            
+            # Перенаправляем пользователя на прямую ссылку для скачивания
+            return redirect(url)
+        except Exception as e:
+            messages.error(request, f'Ошибка при получении файла: {str(e)}')
+            return redirect('event_list')
     else:
-        return HttpResponseNotFound('Requested file not found')
+        # Если используется локальная файловая система
+        file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
+        
+        # Проверяем существование файла
+        if os.path.exists(file_path):
+            # Возвращаем файл как ответ с правильным именем
+            response = FileResponse(open(file_path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
+            return response
+        else:
+            messages.error(request, 'Запрашиваемый файл не найден')
+            return HttpResponseNotFound('Запрашиваемый файл не найден')
 
 @login_required
 def add_solution(request, event_id):

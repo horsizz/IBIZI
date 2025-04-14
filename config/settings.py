@@ -16,6 +16,9 @@ import os
 import dj_database_url
 from dotenv import load_dotenv
 
+# Загружаем переменные окружения из .env файла
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'albedo',  # добавляем наше приложение
+    'cloudinary_storage',  # Cloudinary для хранения файлов
+    'cloudinary',  # Cloudinary для работы с медиа
 ]
 
 MIDDLEWARE = [
@@ -119,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'Asia/Krasnoyarsk'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
@@ -190,3 +195,17 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# Настройки для хранения файлов
+USE_CLOUDINARY = os.environ.get('USE_CLOUDINARY', 'False') == 'True'
+
+# Cloudinary настройки
+if USE_CLOUDINARY:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
