@@ -197,9 +197,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 # Настройки для хранения файлов
-USE_CLOUDINARY = os.environ.get('USE_CLOUDINARY', 'False') == 'True'
+USE_CLOUDINARY = False  # Отключаем Cloudinary
 
-# Cloudinary настройки
+# Cloudinary настройки (сохраняем, если понадобятся позже)
 if USE_CLOUDINARY:
     import cloudinary
     import cloudinary.uploader

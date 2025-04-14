@@ -179,17 +179,6 @@ def create_event(request):
                 mime_type=file_info['mime_type']
             )
             
-            # Проверяем, есть ли cloudinary_url в file_info и можно ли добавить это поле в модель
-            # Используем try-except для обработки возможных ошибок с отсутствующим полем
-            try:
-                if 'cloudinary_url' in file_info:
-                    # Проверяем, существует ли поле cloudinary_url в модели
-                    if hasattr(File, 'cloudinary_url'):
-                        file_obj.cloudinary_url = file_info['cloudinary_url']
-            except Exception as e:
-                # Логируем ошибку, но позволяем процессу продолжиться
-                print(f"Ошибка при установке cloudinary_url: {str(e)}")
-                
             # Сохраняем объект файла
             try:
                 file_obj.save()
@@ -210,191 +199,49 @@ def create_event(request):
 
 @login_required
 def download_file(request, file_id):
-    """View to download a file by its ID"""
+    """Загрузка файла по его ID"""
     file_obj = get_object_or_404(File, id=file_id)
     
-    if settings.USE_CLOUDINARY:
-        import cloudinary
-        import cloudinary.uploader
-        import cloudinary.api
-        
-        try:
-            # Проверяем сначала, есть ли сохраненный cloudinary_url
-            if file_obj.cloudinary_url:
-                # Если в URL уже есть fl_attachment, используем его как есть
-                if "fl_attachment" in file_obj.cloudinary_url:
-                    return redirect(file_obj.cloudinary_url)
-                # Иначе добавляем параметр fl_attachment=true к URL
-                else:
-                    url = f"{file_obj.cloudinary_url}{'&' if '?' in file_obj.cloudinary_url else '?'}fl_attachment=true"
-                    return redirect(url)
-                
-            # Определяем тип ресурса на основе расширения файла
-            name, ext = os.path.splitext(file_obj.file_name.lower())
-            resource_type = "raw"  # По умолчанию для документов
-            if ext in ['.jpg', '.jpeg', '.png', '.gif']:
-                resource_type = "image"
-            elif ext in ['.mp4', '.mov', '.avi']:
-                resource_type = "video"
-            
-            # Получаем имя облака из настроек
-            cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME')
-            if not cloud_name:
-                # Если CLOUD_NAME не установлен в CLOUDINARY_STORAGE, получаем его из конфигурации cloudinary
-                cloud_name = cloudinary.config().cloud_name
-                
-            if not cloud_name:
-                raise ValueError("Cloudinary cloud_name не настроен")
-            
-            # Формируем правильный public_id для Cloudinary
-            # Убираем расширение файла из public_id
-            public_id = file_obj.file_path
-            if public_id.endswith(ext):
-                public_id = public_id[:-len(ext)]
-            
-            # Обрабатываем префикс папки
-            folder_prefix = ""
-            if '/' in public_id:
-                parts = public_id.split('/')
-                if parts[0] in ['uploads', 'solutions']:
-                    folder_prefix = parts[0] + "/"
-                    public_id = '/'.join(parts[1:])
-            
-            # Полный public_id с префиксом папки
-            full_public_id = folder_prefix + public_id
-            
-            # Согласно документации Cloudinary, правильно использовать fl_attachment как часть options
-            # Не добавляем его в путь, а устанавливаем как опцию
-            options = {
-                'resource_type': resource_type,
-                'type': 'upload',
-                'secure': True,
-                'flags': 'attachment'  # Используем flags для установки attachment
-            }
-            
-            # Создаем отладочную информацию
-            print(f"DEBUG - Public ID: {full_public_id}")
-            print(f"DEBUG - Resource Type: {resource_type}")
-            print(f"DEBUG - Options: {options}")
-            
-            # Используем функцию cloudinary.utils.cloudinary_url для создания корректного URL
-            download_url = cloudinary.utils.cloudinary_url(
-                full_public_id,
-                **options
-            )[0]
-            
-            print(f"DEBUG - Generated Download URL: {download_url}")
-            
-            # Перенаправляем на URL для скачивания
-            return redirect(download_url)
-        except Exception as e:
-            print(f"Ошибка при скачивании: {str(e)}")
-            messages.error(request, f'Ошибка при получении файла: {str(e)}')
-            return redirect('event_list')
+    # Путь к файлу в локальной файловой системе
+    file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
+    
+    if os.path.exists(file_path):
+        # Открываем файл и возвращаем для скачивания
+        response = FileResponse(open(file_path, 'rb'))
+        response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
+        return response
     else:
-        # Локальная файловая система
-        file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
-        
-        if os.path.exists(file_path):
-            response = FileResponse(open(file_path, 'rb'))
-            response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
-            return response
-        else:
-            messages.error(request, 'Запрашиваемый файл не найден')
-            return HttpResponseNotFound('Запрашиваемый файл не найден')
+        messages.error(request, 'Запрашиваемый файл не найден')
+        return HttpResponseNotFound('Запрашиваемый файл не найден')
 
 @login_required
 def preview_file(request, file_id):
-    """Просмотр файла через Cloudinary без скачивания"""
+    """Просмотр файла без скачивания (если возможно)"""
     file_obj = get_object_or_404(File, id=file_id)
     
-    if settings.USE_CLOUDINARY:
-        import cloudinary
-        import cloudinary.uploader
-        import cloudinary.api
+    # Для локальной файловой системы отдаем файл напрямую
+    file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
+    
+    if os.path.exists(file_path):
+        # Для изображений и PDF отображаем в браузере, для остальных предлагаем скачать
+        content_type = file_obj.mime_type
+        inline_types = ['image/', 'application/pdf', 'video/', 'text/']
         
-        try:
-            # Проверяем, есть ли сохраненный preview_url
-            if file_obj.preview_url:
-                return redirect(file_obj.preview_url)
-                
-            # Если нет сохраненного preview_url, но есть cloudinary_url
-            if file_obj.cloudinary_url:
-                # Заменяем fl_attachment=true на пустую строку
-                preview_url = file_obj.cloudinary_url.replace("?fl_attachment=true", "").replace("&fl_attachment=true", "")
-                # Сохраняем URL для будущего использования
-                file_obj.preview_url = preview_url
-                file_obj.save()
-                return redirect(preview_url)
-            
-            # Если нужно создать URL для предварительного просмотра
-            name, ext = os.path.splitext(file_obj.file_name.lower())
-            resource_type = "raw"  # По умолчанию для документов
-            if ext in ['.jpg', '.jpeg', '.png', '.gif']:
-                resource_type = "image"
-            elif ext in ['.mp4', '.mov', '.avi']:
-                resource_type = "video"
-            
-            # Получаем public_id
-            public_id = file_obj.file_path
-            if public_id.endswith(ext):
-                public_id = public_id[:-len(ext)]
-            
-            # Обрабатываем префикс папки
-            folder_prefix = ""
-            if '/' in public_id:
-                parts = public_id.split('/')
-                if parts[0] in ['uploads', 'solutions']:
-                    folder_prefix = parts[0] + "/"
-                    public_id = '/'.join(parts[1:])
-            
-            # Полный public_id с префиксом папки
-            full_public_id = folder_prefix + public_id
-            
-            # Генерируем URL для предварительного просмотра
-            preview_url = cloudinary.utils.cloudinary_url(
-                full_public_id,
-                resource_type=resource_type,
-                type="upload",
-                secure=True
-            )[0]
-            
-            # Сохраняем URL для будущего использования
-            file_obj.preview_url = preview_url
-            file_obj.save()
-            
-            print(f"DEBUG - Preview URL: {preview_url}")
-            
-            # Перенаправляем на URL для предварительного просмотра
-            return redirect(preview_url)
-        except Exception as e:
-            print(f"Ошибка при создании URL предпросмотра: {str(e)}")
-            messages.error(request, f'Ошибка при предварительном просмотре файла: {str(e)}')
-            return redirect('event_list')
-    else:
-        # Для локальной файловой системы отдаем файл напрямую
-        file_path = os.path.join(settings.MEDIA_ROOT, file_obj.file_path)
+        response = FileResponse(open(file_path, 'rb'), content_type=content_type)
         
-        if os.path.exists(file_path):
-            # Для изображений и PDF отображаем в браузере, для остальных скачиваем
-            content_type = file_obj.mime_type
-            inline_types = ['image/', 'application/pdf']
-            
-            response = FileResponse(open(file_path, 'rb'), content_type=content_type)
-            
-            # Проверяем, нужно ли отображать файл в браузере или скачивать
-            is_inline = any(content_type.startswith(t) for t in inline_types)
-            
-            if is_inline:
-                response['Content-Disposition'] = f'inline; filename="{file_obj.file_name}"'
-            else:
-                # Если нельзя предварительно просмотреть, предлагаем скачать
-                response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
-                
-            return response
+        # Проверяем, можно ли отобразить файл в браузере
+        is_inline = any(content_type.startswith(t) for t in inline_types)
+        
+        if is_inline:
+            response['Content-Disposition'] = f'inline; filename="{file_obj.file_name}"'
         else:
-            messages.error(request, 'Запрашиваемый файл не найден')
-            return HttpResponseNotFound('Запрашиваемый файл не найден')
+            # Если тип файла не поддерживает предпросмотр, предлагаем скачать
+            response['Content-Disposition'] = f'attachment; filename="{file_obj.file_name}"'
+            
+        return response
+    else:
+        messages.error(request, 'Запрашиваемый файл не найден')
+        return HttpResponseNotFound('Запрашиваемый файл не найден')
 
 @login_required
 def add_solution(request, event_id):
@@ -437,13 +284,6 @@ def add_solution(request, event_id):
                     file_path=file_info['file_path'],
                     mime_type=file_info['mime_type']
                 )
-                
-                # Безопасно устанавливаем cloudinary_url, если он есть
-                try:
-                    if 'cloudinary_url' in file_info and hasattr(File, 'cloudinary_url'):
-                        file_obj.cloudinary_url = file_info['cloudinary_url']
-                except Exception as e:
-                    print(f"Ошибка при установке cloudinary_url: {str(e)}")
                 
                 # Сохраняем объект файла с обработкой ошибок
                 try:

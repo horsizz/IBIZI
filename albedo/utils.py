@@ -120,106 +120,31 @@ def secure_file_upload(file, upload_dir):
     # Создаем поддиректорию на основе хеша для лучшей организации
     subdir = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
     
-    if settings.USE_CLOUDINARY:
-        # Загружаем файл в Cloudinary
-        import cloudinary
-        import cloudinary.uploader
+    # Загружаем файл локально
+    try:
+        # Создаем директорию, если она не существует
+        local_dir = os.path.join(upload_dir, subdir)
+        os.makedirs(local_dir, exist_ok=True)
         
-        try:
-            # Создаем более безопасное имя для Cloudinary
-            name, ext = os.path.splitext(safe_filename)
-            safe_id = hashlib.md5(name.encode()).hexdigest()[:12]
-            cloudinary_filename = f"{safe_id}{ext}"
-            
-            # Определяем путь хранения файла в Cloudinary (более короткий и без спецсимволов)
-            cloudinary_folder = os.path.basename(upload_dir)
-            public_id = f"{cloudinary_folder}/{subdir}/{cloudinary_filename}"
-            
-            # Определяем тип ресурса на основе расширения
-            resource_type = "raw"  # По умолчанию для документов
-            if ext.lower() in ['.jpg', '.jpeg', '.png', '.gif']:
-                resource_type = "image"
-            elif ext.lower() in ['.mp4', '.mov', '.avi']:
-                resource_type = "video"
-            
-            # Загружаем файл в Cloudinary
-            upload_result = cloudinary.uploader.upload(
-                file,
-                public_id=public_id,
-                resource_type=resource_type,
-                overwrite=True,
-                use_filename=True
-            )
-            
-            # Сохраняем URL из результата загрузки
-            secure_url = upload_result.get('secure_url')
-            
-            # Создаем URL для скачивания с параметром fl_attachment
-            download_url = cloudinary.utils.cloudinary_url(
-                public_id,
-                resource_type=resource_type,
-                type="upload",
-                flags="attachment"
-            )[0]
-            
-            # Создаем URL для предварительного просмотра (без флага attachment)
-            preview_url = cloudinary.utils.cloudinary_url(
-                public_id,
-                resource_type=resource_type,
-                type="upload",
-                secure=True
-            )[0]
-            
-            # Проверяем, существует ли колонка cloudinary_url в таблице albedo_file
-            with connection.cursor() as cursor:
-                try:
-                    cursor.execute("SELECT cloudinary_url FROM albedo_file LIMIT 1")
-                    has_cloudinary_url = True
-                except Exception:
-                    has_cloudinary_url = False
-            
-            # Возвращаем информацию о файле
-            file_info = {
-                'file_name': file.name,
-                'safe_name': safe_filename,
-                'file_path': public_id,
-                'size': file.size,
-                'mime_type': mime_type,
-                'cloudinary_url': download_url,  # URL для скачивания
-                'preview_url': preview_url       # URL для предварительного просмотра
-            }
-            
-            return file_info, None
-            
-        except Exception as e:
-            errors.append(f"Ошибка при загрузке файла в облачное хранилище: {str(e)}")
-            return None, errors
-    else:
-        # Загружаем файл локально
-        try:
-            # Создаем директорию, если она не существует
-            local_dir = os.path.join(upload_dir, subdir)
-            os.makedirs(local_dir, exist_ok=True)
-            
-            file_path = os.path.join(local_dir, safe_filename)
-            relative_path = os.path.join(os.path.basename(upload_dir), subdir, safe_filename)
-            
-            # Сохраняем файл
-            with open(file_path, 'wb+') as destination:
-                for chunk in file.chunks():
-                    destination.write(chunk)
-            
-            # Возвращаем информацию о файле
-            file_info = {
-                'file_name': file.name,
-                'safe_name': safe_filename,
-                'file_path': relative_path,
-                'size': file.size,
-                'mime_type': mime_type
-            }
-            
-            return file_info, None
-            
-        except Exception as e:
-            errors.append(f"Ошибка при сохранении файла: {str(e)}")
-            return None, errors
+        file_path = os.path.join(local_dir, safe_filename)
+        relative_path = os.path.join(os.path.basename(upload_dir), subdir, safe_filename)
+        
+        # Сохраняем файл
+        with open(file_path, 'wb+') as destination:
+            for chunk in file.chunks():
+                destination.write(chunk)
+        
+        # Возвращаем информацию о файле
+        file_info = {
+            'file_name': file.name,
+            'safe_name': safe_filename,
+            'file_path': relative_path,
+            'size': file.size,
+            'mime_type': mime_type
+        }
+        
+        return file_info, None
+        
+    except Exception as e:
+        errors.append(f"Ошибка при сохранении файла: {str(e)}")
+        return None, errors
