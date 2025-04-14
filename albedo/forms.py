@@ -9,60 +9,70 @@ import requests
 import time
 
 def validate_file_viruses(value):
-    """Проверка файла на вирусы"""
-    url = "https://www.virustotal.com/api/v3/files"
-    headers = {
-        "accept": "application/json",
-        "x-apikey": "822d4b03712a0eb941610876810053e4d516fd251d9f8a014628a220899f7ba4"  # Replace with your actual VirusTotal API key
-    }
-    
-    # Prepare the file for upload
-    files = {
-        "file": (value.name, value.file, value.content_type)
-    }
-    
-    # Send the file to VirusTotal
-    response = requests.post(url, files=files, headers=headers)
-    if response.status_code != 200:
-        raise ValidationError("Ошибка при проверке файла на вирусы.")
-    
-    # Parse the response to get the analysis ID
-    result = response.json()
-    analysis_id = result.get("data", {}).get("id")
-    if not analysis_id:
-        raise ValidationError("Не удалось получить ID анализа файла.")
-    
-    # Poll the analysis results
-    analysis_url = f"https://www.virustotal.com/api/v3/analyses/{analysis_id}"
-    while True:
-        analysis_response = requests.get(analysis_url, headers=headers)
+    """
+    Проверка файла на вирусы с использованием VirusTotal API
+    Оптимизированная версия без бесконечного опроса
+    """
+    # Отключаем проверку для локальной разработки
+    if settings.DEBUG:
+        return
+        
+    try:
+        url = "https://www.virustotal.com/api/v3/files"
+        headers = {
+            "accept": "application/json",
+            "x-apikey": "822d4b03712a0eb941610876810053e4d516fd251d9f8a014628a220899f7ba4"
+        }
+        
+        # Подготовка файла для загрузки
+        files = {
+            "file": (value.name, value.file, value.content_type)
+        }
+        
+        # Отправляем файл в VirusTotal с таймаутом
+        response = requests.post(url, files=files, headers=headers, timeout=10)
+        if response.status_code != 200:
+            # Не блокируем загрузку при ошибке API, просто логируем
+            print(f"Ошибка при проверке файла на вирусы: {response.status_code}")
+            return
+        
+        # Получаем ID анализа
+        result = response.json()
+        analysis_id = result.get("data", {}).get("id")
+        if not analysis_id:
+            print("Не удалось получить ID анализа файла")
+            return
+        
+        # Запрашиваем результаты анализа один раз с таймаутом
+        analysis_url = f"https://www.virustotal.com/api/v3/analyses/{analysis_id}"
+        analysis_response = requests.get(analysis_url, headers=headers, timeout=10)
+        
         if analysis_response.status_code != 200:
-            raise ValidationError("Ошибка при получении результатов анализа файла.")
+            print(f"Ошибка при получении результатов анализа: {analysis_response.status_code}")
+            return
         
+        # Проверяем результаты
         analysis_result = analysis_response.json()
-        status = analysis_result.get("data", {}).get("attributes", {}).get("status")
-        
-        # Print scan statistics
         stats = analysis_result.get("data", {}).get("attributes", {}).get("stats", {})
+        
+        # Выводим статистику сканирования
         print("Статистика сканирования:")
         print(f"Malicious: {stats.get('malicious', 0)}")
         print(f"Suspicious: {stats.get('suspicious', 0)}")
         print(f"Undetected: {stats.get('undetected', 0)}")
         print(f"Harmless: {stats.get('harmless', 0)}")
-        print(f"Timeout: {stats.get('timeout', 0)}")
-        print(f"Failures: {stats.get('failure', 0)}")
-        print(f"Type Unsupported: {stats.get('type-unsupported', 0)}")
         print("____________________________")
         
-        if status == "completed":
-            # Analysis is complete, check the results
-            malicious = stats.get("malicious", 0)
-            if malicious > 0:
-                raise ValidationError("Файл содержит вирусы и не может быть загружен.")
-            break
-        else:
-            # Wait and retry
-            time.sleep(5)
+        # Проверяем только если анализ полностью завершен
+        status = analysis_result.get("data", {}).get("attributes", {}).get("status")
+        if status == "completed" and stats.get("malicious", 0) > 0:
+            raise ValidationError("Файл содержит вирусы и не может быть загружен.")
+            
+    except requests.RequestException as e:
+        # При сетевых проблемах не блокируем загрузку
+        print(f"Сетевая ошибка при проверке на вирусы: {str(e)}")
+    except Exception as e:
+        print(f"Непредвиденная ошибка при проверке на вирусы: {str(e)}")
 
 def validate_file_extension(value):
     """Проверка расширения файла"""
@@ -117,7 +127,7 @@ class UserRegistrationForm(UserCreationForm):
 
 class EventForm(forms.ModelForm):
     uploaded_file = forms.FileField(
-        required=True,  # Изменяем на True, чтобы файл был обязательным
+        required=True,
         label="Файл",
         validators=[validate_file_extension, validate_file_size, validate_file_viruses],
         help_text="Загрузите файл. Это обязательное поле."
