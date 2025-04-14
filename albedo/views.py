@@ -121,7 +121,14 @@ def event_list(request):
 @login_required
 def event_detail(request, event_id):
     event = get_object_or_404(Event, id=event_id)
-    solutions = event.solutions.all()
+    
+    # Изменяем запрос, чтобы не пытаться получить cloudinary_url
+    # Используем select_related для оптимизации запросов
+    event = Event.objects.select_related('user').select_related('file').get(id=event_id)
+    
+    # Получаем связанные решения
+    solutions = Solution.objects.filter(event=event).select_related('user')
+    
     return render(request, 'albedo/event_detail.html', {
         'event': event,
         'solutions': solutions
@@ -189,12 +196,7 @@ def download_file(request, file_id):
     file_obj = get_object_or_404(File, id=file_id)
     
     if settings.USE_CLOUDINARY:
-        # Проверяем, есть ли сохраненный URL от Cloudinary
-        if file_obj.cloudinary_url:
-            # Используем сохраненный cloudinary_url напрямую
-            return redirect(file_obj.cloudinary_url)
-        
-        # Если URL не сохранен, пробуем сгенерировать его с правильными параметрами
+        # Используем Cloudinary - генерируем URL для скачивания напрямую без использования cloudinary_url из базы
         import cloudinary
         import cloudinary.uploader
         import cloudinary.api
@@ -215,10 +217,6 @@ def download_file(request, file_id):
                 type="upload",
                 flags="attachment"
             )[0]
-            
-            # Сохраняем URL для будущего использования
-            file_obj.cloudinary_url = download_url
-            file_obj.save(update_fields=['cloudinary_url'])
             
             # Перенаправляем на URL для скачивания
             return redirect(download_url)
