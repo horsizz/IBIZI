@@ -228,8 +228,18 @@ def download_file(request, file_id):
                 resource_type = "video"
             
             # Формируем правильный URL для скачивания
-            # Используем другой подход для создания URL
+            # В Cloudinary публичный ID не должен содержать префиксы папок, которые используются в URL
+            # Например, если file_path = "uploads/4e47dba8/8eb76ce3c301.jpg", то для Cloudinary
+            # правильный public_id = "4e47dba8/8eb76ce3c301.jpg" без префикса "uploads/"
+            
             public_id = file_obj.file_path
+            
+            # Если public_id содержит префикс папки (например uploads/), удаляем его
+            # потому что этот префикс уже используется в URL Cloudinary
+            if '/' in public_id:
+                parts = public_id.split('/')
+                if parts[0] in ['uploads', 'solutions']:
+                    public_id = '/'.join(parts[1:])
             
             # Формируем URL с флагом attachment=true для прямого скачивания
             from urllib.parse import urlencode
