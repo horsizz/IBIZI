@@ -87,40 +87,4 @@
         overflow-y: auto;
     }
 </style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Функция для первого поля пароля
-        const togglePassword1 = document.getElementById('togglePassword1');
-        const password1 = document.getElementById('password1');
-
-        togglePassword1.addEventListener('click', function() {
-            if (password1.type === 'password') {
-                password1.type = 'text';
-                this.querySelector('i').classList.remove('fa-eye');
-                this.querySelector('i').classList.add('fa-eye-slash');
-            } else {
-                password1.type = 'password';
-                this.querySelector('i').classList.remove('fa-eye-slash');
-                this.querySelector('i').classList.add('fa-eye');
-            }
-        });
-
-        // Функция для второго поля пароля
-        const togglePassword2 = document.getElementById('togglePassword2');
-        const password2 = document.getElementById('password2');
-
-        togglePassword2.addEventListener('click', function() {
-            if (password2.type === 'password') {
-                password2.type = 'text';
-                this.querySelector('i').classList.remove('fa-eye');
-                this.querySelector('i').classList.add('fa-eye-slash');
-            } else {
-                password2.type = 'password';
-                this.querySelector('i').classList.remove('fa-eye-slash');
-                this.querySelector('i').classList.add('fa-eye');
-            }
-        });
-    });
-</script>
 {% endblock %}

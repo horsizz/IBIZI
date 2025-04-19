@@ -24,8 +24,8 @@ from email.mime.text import MIMEText
 
 
 def home(request):
-    # Получаем все события, отсортированные по дате создания (новые сначала)
-    events = Event.objects.filter(user__active=True).order_by('-created_at')
+    # Получаем все события, сначала "в процессе", затем "закрытые", и сортируем по дате создания (новые сначала)
+    events = Event.objects.filter(user__active=True).order_by('-status', '-created_at')
     return render(request, 'albedo/home.html', {'events': events})
 
 EMAIL_HOST = "smtp.mail.ru"
@@ -114,13 +114,16 @@ def register(request):
 
 @login_required
 def event_list(request):
-    # Фильтруем события, созданные только активными пользователями
-    events = Event.objects.filter(user__active=True).order_by('-created_at')
+    # Фильтруем события, созданные только активными пользователями, и сортируем: сначала "в процессе", затем по дате создания
+    events = Event.objects.filter(user__active=True).order_by('-status', '-created_at')
     return render(request, 'albedo/event_list.html', {'events': events})
 
 @login_required
 def event_detail(request, event_id):
     event = get_object_or_404(Event, id=event_id)
+    
+    # Проверяем, не истек ли срок сдачи и обновляем статус при необходимости
+    event.update_status_if_expired()
     
     # Изменяем запрос, чтобы не пытаться получить cloudinary_url
     # Используем select_related для оптимизации запросов
@@ -251,8 +254,13 @@ def add_solution(request, event_id):
         return redirect('event_detail', event_id=event_id)
         
     event = get_object_or_404(Event, id=event_id)
+    
+    # Проверяем, не истек ли срок сдачи и обновляем статус при необходимости
+    event.update_status_if_expired()
+    
+    # Проверяем статус события после возможного обновления
     if event.status == 'closed':
-        messages.error(request, 'This event is closed.')
+        messages.error(request, 'Событие закрыто. Добавление решений невозможно.')
         return redirect('event_detail', event_id=event.id)
     
     if request.method == 'POST':
@@ -314,8 +322,8 @@ def profile(request):
     # Получаем решения текущего пользователя
     user_solutions = Solution.objects.filter(user=request.user).order_by('-created_at')
     
-    # Получаем события, созданные пользователем
-    user_events = Event.objects.filter(user=request.user).order_by('-created_at')
+    # Получаем события, созданные пользователем: сначала "в процессе", затем "закрытые"
+    user_events = Event.objects.filter(user=request.user).order_by('-status', '-created_at')
     
     context = {
         'user': request.user,

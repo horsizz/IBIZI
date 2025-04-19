@@ -26,16 +26,16 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto;">
         {% for event in events %}
         <div style="background-color: rgba(52, 58, 64, 0.45); border-radius: 25px; padding: 25px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: transform 0.3s ease, box-shadow 0.3s ease;">
-            <h3 style="color: #1ABC9C; margin-top: 0; margin-bottom: 15px; font-size: 1.4rem; font-weight: 400;">
+            <h3 style="color: #1ABC9C; margin-top: 0; margin-bottom: 15px; font-size: 1.4rem; font-weight: 400; word-break: break-word;">
                 {{ event.title }}
             </h3>
             <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {% if event.status %}#1ABC9C{% else %}#6c757d{% endif %}; margin-right: 8px;"></span>
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {% if event.status == 'in_progress' %}#1ABC9C{% else %}#E74C3C{% endif %}; margin-right: 8px;"></span>
                 <p style="color: rgba(255,255,255,0.7); margin: 0; font-size: 0.9rem;">
                     {{ event.get_status_display }}
                 </p>
             </div>
-            <p style="color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.6; font-size: 0.95rem;">
+            <p style="color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.6; font-size: 0.95rem; word-break: break-word; overflow-wrap: break-word;">
                 {{ event.description|truncatewords:30 }}
             </p>
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85rem;">

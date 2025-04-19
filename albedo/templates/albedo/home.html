@@ -7,8 +7,8 @@
         Albedo
     </h1>
 
-    <p style="text-align: center; color: rgba(255,255,255,0.8); max-width: 500px; margin: 0 auto 30px auto; line-height: 1.5; font-size: 1rem;">
-        Приветствуем Вас на нашей платформе Albedo, где вы не только сможете прокачать свои навыки программирования, но и проверить свой код на прочность!
+    <p style="text-align: center; color: rgba(255,255,255,0.8); max-width: 650px; margin: 0 auto 30px auto; line-height: 1.5; font-size: 1rem;">
+        Приветствуем Вас на нашей платформе Albedo, где Вы не только сможете прокачать свои навыки программирования, но и проверить свой код на прочность!
     </p>
 </div>
 
@@ -17,7 +17,7 @@
     <h5 style="margin-top: 0; margin-bottom: 15px; font-size: 1.2rem;">
         <a href="{% url 'event_detail' event.id %}" style="color: #1ABC9C; text-decoration: none; font-weight: 400;">{{ event.title }}</a>
     </h5>
-    <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px; line-height: 1.5; font-size: 0.95rem;">{{ event.description|truncatewords:30 }}</p>
+    <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px; line-height: 1.5; font-size: 0.95rem; word-break: break-word;">{{ event.description|truncatewords:30 }}</p>
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <small style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">Создано: {{ event.created_at|date:"d.m.Y" }}</small>
         <span style="display: inline-block; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; background-color: {% if event.status %}rgba(26, 188, 156, 0.6){% else %}rgba(108, 117, 125, 0.6){% endif %}; color: white; font-weight: 400;">

@@ -45,8 +45,8 @@ class Event(models.Model):
         ('closed', 'Закрыто'),
     )
 
-    title = models.CharField(max_length=255, verbose_name="Заголовок")
-    description = models.TextField(blank=True, verbose_name="Описание")
+    title = models.CharField(max_length=28, verbose_name="Заголовок")
+    description = models.TextField(blank=True, max_length=300, verbose_name="Описание")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     status = models.CharField(
         max_length=11,
@@ -78,6 +78,21 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+        
+    def is_expired(self):
+        """Проверяет, истек ли срок сдачи события"""
+        if self.limit_date and self.status == 'in_progress':
+            from django.utils import timezone
+            return self.limit_date < timezone.now()
+        return False
+
+    def update_status_if_expired(self):
+        """Обновляет статус события, если срок сдачи истек"""
+        if self.is_expired():
+            self.status = 'closed'
+            self.save(update_fields=['status'])
+            return True
+        return False
 
 
 class Solution(models.Model):
