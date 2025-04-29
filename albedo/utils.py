@@ -111,23 +111,32 @@ def secure_file_upload(file, upload_dir):
         errors.append("В файле обнаружен потенциально опасный код.")
         return None, errors
     
-    # Если все проверки пройдены, создаем безопасное имя файла
-    safe_filename = sanitize_filename(file.name)
+    # Получаем оригинальное имя файла
+    original_filename = file.name
+    
+    # Обеспечиваем уникальность имени файла, добавляя метку времени только если нужно
+    import time
+    base_name, ext = os.path.splitext(original_filename)
+    filename = original_filename
+    
+    # Проверяем существование файла и при необходимости добавляем счетчик
+    counter = 1
+    file_path = os.path.join(upload_dir, filename)
+    while os.path.exists(file_path):
+        filename = f"{base_name}_{counter}{ext}"
+        file_path = os.path.join(upload_dir, filename)
+        counter += 1
     
     # Определяем MIME тип на основе расширения
     mime_type = get_simple_mime_type(file.name)
     
-    # Создаем поддиректорию на основе хеша для лучшей организации
-    subdir = hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:8]
-    
     # Загружаем файл локально
     try:
         # Создаем директорию, если она не существует
-        local_dir = os.path.join(upload_dir, subdir)
-        os.makedirs(local_dir, exist_ok=True)
+        os.makedirs(upload_dir, exist_ok=True)
         
-        file_path = os.path.join(local_dir, safe_filename)
-        relative_path = os.path.join(os.path.basename(upload_dir), subdir, safe_filename)
+        # Получаем относительный путь для хранения в БД
+        relative_path = os.path.join(os.path.basename(upload_dir), filename)
         
         # Сохраняем файл
         with open(file_path, 'wb+') as destination:
@@ -136,8 +145,8 @@ def secure_file_upload(file, upload_dir):
         
         # Возвращаем информацию о файле
         file_info = {
-            'file_name': file.name,
-            'safe_name': safe_filename,
+            'file_name': original_filename,
+            'safe_name': filename,
             'file_path': relative_path,
             'size': file.size,
             'mime_type': mime_type

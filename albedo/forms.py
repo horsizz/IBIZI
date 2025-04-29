@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from .models import Event, Solution, User, File
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.utils import timezone
 import os
 import requests
 import time
@@ -137,7 +138,11 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['title', 'description', 'limit_date']
         widgets = {
-            'limit_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'limit_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'min': (timezone.now() + timezone.timedelta(minutes=30)).strftime('%Y-%m-%dT%H:%M'),
+                'max': '2100-01-01T00:00'
+            }),
         }
         labels = {
             'title': 'Заголовок',
@@ -147,21 +152,25 @@ class EventForm(forms.ModelForm):
         help_texts = {
             'title': 'Введите название события',
             'description': 'Подробное описание события',
-            'limit_date': 'Укажите дату и время окончания приема решений',
+            'limit_date': 'Укажите дату и время окончания приема решений (минимум через 30 минут, максимум до 2100 года)',
         }
     
     def clean_limit_date(self):
         """
-        Проверяет, что срок сдачи не находится в прошлом
+        Проверяет, что срок сдачи находится в допустимом диапазоне
         """
         limit_date = self.cleaned_data.get('limit_date')
         
         if limit_date:
-            from django.utils import timezone
             now = timezone.now()
+            min_date = now + timezone.timedelta(minutes=30)
+            max_date = timezone.datetime(2100, 1, 1, tzinfo=timezone.get_current_timezone())
             
-            if limit_date < now:
-                raise forms.ValidationError('Срок сдачи не может быть в прошлом. Укажите актуальную дату.')
+            if limit_date < min_date:
+                raise forms.ValidationError('Срок сдачи должен быть как минимум через 30 минут от текущего времени.')
+            
+            if limit_date > max_date:
+                raise forms.ValidationError('Срок сдачи не может быть позднее 01.01.2100.')
         
         return limit_date
 
