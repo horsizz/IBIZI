@@ -26,7 +26,7 @@ class File(models.Model):
     file_name = models.CharField(max_length=255, verbose_name="Имя файла")
     size = models.PositiveIntegerField(verbose_name="Размер")
     file_path = models.CharField(max_length=255, verbose_name="Путь к файлу")
-    mime_type = models.CharField(max_length=50, verbose_name="MIME тип")
+    mime_type = models.CharField(max_length=255, verbose_name="MIME тип")
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
     cloudinary_url = models.URLField(max_length=1000, blank=True, null=True, verbose_name="Cloudinary URL")
     preview_url = models.URLField(max_length=1000, blank=True, null=True, verbose_name="URL предпросмотра")
