@@ -2,8 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.forms import AuthenticationForm
+from django.utils import timezone
+from datetime import timedelta
 from .forms import UserRegistrationForm, EventForm, SolutionForm
-from .models import Event, Solution, File, User
+from .models import Event, Solution, File, User, LoginAttempt
 import os
 from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
@@ -22,6 +25,52 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+
+def custom_login(request):
+    """
+    Пользовательское представление для входа с защитой от брутфорса.
+    Блокирует доступ после 5 неудачных попыток в течение часа.
+    """
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Получаем IP адрес
+        ip_address = request.META.get('REMOTE_ADDR', '0.0.0.0')
+        
+        # Проверяем количество попыток за последний час
+        one_hour_ago = timezone.now() - timedelta(hours=1)
+        attempts = LoginAttempt.objects.filter(
+            username=username, 
+            ip_address=ip_address,
+            attempt_time__gte=one_hour_ago
+        ).count()
+        
+        # Если попыток больше 5, блокируем доступ
+        if attempts >= 5:
+            messages.error(request, 'Слишком много неудачных попыток входа. Ваш аккаунт временно заблокирован.')
+            return render(request, 'albedo/lockout.html')
+        
+        # Пытаемся аутентифицировать пользователя
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None and user.active:
+            login(request, user)
+            # Успешный вход - удаляем записи о попытках
+            LoginAttempt.objects.filter(username=username, ip_address=ip_address).delete()
+            return redirect('event_list')
+        else:
+            # Неудачная попытка - записываем
+            LoginAttempt.objects.create(username=username, ip_address=ip_address)
+            if user and not user.active:
+                messages.error(request, 'Ваш аккаунт заблокирован администратором.')
+            else:
+                messages.error(request, 'Неверное имя пользователя или пароль')
+    else:
+        form = AuthenticationForm()
+    
+    return render(request, 'albedo/login.html', {'form': form})
 
 def home(request):
     # Получаем все события, сначала "в процессе", затем "закрытые", и сортируем по дате создания (новые сначала)

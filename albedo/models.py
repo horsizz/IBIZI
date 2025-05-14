@@ -22,6 +22,15 @@ class User(AbstractUser):
         return dict(self.ROLE_CHOICES).get(self.role, 'Неизвестно')
 
 
+class LoginAttempt(models.Model):
+    username = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField()
+    attempt_time = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.username} - {self.ip_address} - {self.attempt_time}"
+
+
 class File(models.Model):
     file_name = models.CharField(max_length=255, verbose_name="Имя файла")
     size = models.PositiveIntegerField(verbose_name="Размер")
