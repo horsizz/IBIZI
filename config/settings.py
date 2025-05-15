@@ -49,18 +49,30 @@ INSTALLED_APPS = [
     'cloudinary',  # Cloudinary для работы с медиа
 ]
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+#CACHE_MIDDLEWARE_SECONDS = 900  # 15 минут
+#CACHE_MIDDLEWARE_KEY_PREFIX = ''  # Добавьте префикс, если нужно
+
 MIDDLEWARE = [
+    #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Добавляем WhiteNoise для обработки статических файлов
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'albedo.middleware.UserBlockStatusMiddleware',  # Middleware для блокировки пользователейльзователей
     'albedo.middleware.SecurityHeadersMiddleware',  # Новый middleware для заголовков безопасности
-    'albedo.middleware.PathTraversalProtectionMiddleware',  # Защита от path traversal
+    'albedo.middleware.PathTraversalProtectionMiddleware', # Защита от path traversal
+    #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -182,8 +194,8 @@ MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
-SESSION_COOKIE_SECURE = False  # В production изменить на True
-CSRF_COOKIE_SECURE = False  # В production изменить на True
+SESSION_COOKIE_SECURE = True  # В production изменить на True
+CSRF_COOKIE_SECURE = True  # В production изменить на True
 
 # Настройки для статических файлов
 if not DEBUG:

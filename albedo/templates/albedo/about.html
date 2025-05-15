@@ -1,0 +1,29 @@
+{% extends 'albedo/base.html' %}
+{% load static %}
+
+{% block content %}
+<div style="padding-top: 30px;">
+    <h1 style="text-align: center; color: white; font-size: 2.5rem; margin-bottom: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); font-weight: 300; letter-spacing: 0.5px;">О сайте</h1>
+</div>
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 25px; background-color: rgba(52, 58, 64, 0.5); border-radius: 25px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 5px 15px rgba(0,0,0,0.15);">
+    <p style="color: rgba(255,255,255,0.9); font-size: 1.2rem; line-height: 1.6;">Этот сайт позволит вам протестировать свои или чужие алгоритмы и приложения на прочность. Исследуйте страницу "События" для того чтобы опубликовать свое приложение или найти ошибку в чужом.</p>
+</div>
+
+<style>
+    body {
+        background: url('{% static "images/fon.jpg" %}') no-repeat center center fixed;
+        background-size: cover;
+        padding: 0 0 60px 0;
+    }
+
+    a {
+        transition: all 0.3s ease;
+    }
+
+    a:hover {
+        color: #16A085 !important;
+        text-shadow: 0 0 10px rgba(26, 188, 156, 0.5);
+    }
+</style>
+{% endblock %}

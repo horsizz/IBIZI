@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .views import about
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -18,6 +19,7 @@ urlpatterns = [
     path('event/<int:event_id>/solution/', views.add_solution, name='add_solution'),
     path('file/<int:file_id>/download/', views.download_file, name='download_file'),
     path('file/<int:file_id>/preview/', views.preview_file, name='preview_file'),  # Новый маршрут для предпросмотра
+    path('about/', about, name='about'),
     
     # Админ функции
     path('users/', views.user_list, name='user_list'),

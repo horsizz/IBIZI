@@ -131,15 +131,19 @@ class EventForm(forms.ModelForm):
         required=True,
         label="Файл",
         validators=[validate_file_extension, validate_file_size, validate_file_viruses],
-        help_text="Загрузите файл. Это обязательное поле."
+        help_text="Загрузите файл. Это обязательное поле.",
+        widget=forms.ClearableFileInput(attrs={'id': 'uploaded_file'})
     )
     
     class Meta:
         model = Event
         fields = ['title', 'description', 'limit_date']
         widgets = {
+            'title': forms.TextInput(attrs={'id': 'title'}),
+            'description': forms.Textarea(attrs={'id': 'description'}),
             'limit_date': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
+                'id': 'limit_date',
                 'min': (timezone.now() + timezone.timedelta(minutes=30)).strftime('%Y-%m-%dT%H:%M'),
                 'max': '2100-01-01T00:00'
             }),
