@@ -52,6 +52,63 @@
     </div>
 </div>
 
+<script>
+    // Установить куки
+    function setCookie(name, value, days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        document.cookie = `${name}=${encodeURIComponent(value)};expires=${date.toUTCString()};path=/`;
+    }
+
+    // Получить куки
+    function getCookie(name) {
+        const cookies = document.cookie.split('; ');
+        for (let cookie of cookies) {
+            const [key, value] = cookie.split('=');
+            if (key === name) {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    }
+
+    // Восстановление данных из куки при загрузке страницы
+    window.addEventListener('DOMContentLoaded', function () {
+        const title = getCookie('event_title');
+        const description = getCookie('event_description');
+        const limitDate = getCookie('event_limit_date');
+
+        if (title) document.getElementById('title').value = title;
+        if (description) document.getElementById('description').value = description;
+        if (limitDate) document.getElementById('limit_date').value = limitDate;
+    });
+
+    // Сохранение данных в куки при изменении полей формы
+    document.getElementById('title').addEventListener('input', function () {
+        setCookie('event_title', this.value, 7);
+    });
+
+    document.getElementById('description').addEventListener('input', function () {
+        setCookie('event_description', this.value, 7);
+    });
+
+    document.getElementById('limit_date').addEventListener('input', function () {
+        setCookie('event_limit_date', this.value, 7);
+    });
+
+    // Очистить куки
+    function clearCookies() {
+        document.cookie = "event_title=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+        document.cookie = "event_description=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+        document.cookie = "event_limit_date=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+    }
+
+    // Добавляем обработчик на кнопку "Создать событие"
+    document.querySelector('button[type="submit"]').addEventListener('click', function () {
+        clearCookies();
+    });
+</script>
+
 <style>
     body {
         background: url('{% static "images/fon.jpg" %}') no-repeat center center fixed;
