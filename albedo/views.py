@@ -445,3 +445,8 @@ def delete_solution(request, solution_id):
     
     messages.success(request, 'Решение успешно удалено.')
     return redirect('event_detail', event_id=event_id)
+
+def custom_404_view(request, exception=None):
+    """Кастомная страница 404"""
+    response = render(request, 'albedo/404.html', status=404)
+    return response

@@ -1,9 +1,11 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from .test_views import test_404
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('test-404/', test_404, name='test_404'),  # Тестовый URL для 404
     path('register/', views.register, name='register'),
     path('events/', views.event_list, name='event_list'),
     path('password_reset/', auth_views.PasswordResetView.as_view(template_name='albedo/password_reset_form.html', email_template_name='albedo/password_reset_email.html', subject_template_name='albedo/password_reset_subject.txt'), name='password_reset'),
