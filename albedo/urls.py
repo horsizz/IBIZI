@@ -1,11 +1,8 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-<<<<<<< HEAD
 from .test_views import test_404
-=======
 from .views import about
->>>>>>> b8f773546cc19de0624892151324e48d10d9e397
 
 urlpatterns = [
     path('', views.home, name='home'),

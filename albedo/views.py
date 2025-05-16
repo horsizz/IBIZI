@@ -451,11 +451,9 @@ def delete_solution(request, solution_id):
     messages.success(request, 'Решение успешно удалено.')
     return redirect('event_detail', event_id=event_id)
 
-<<<<<<< HEAD
 def custom_404_view(request, exception=None):
     """Кастомная страница 404"""
     response = render(request, 'albedo/404.html', status=404)
-=======
 @csrf_exempt
 @cache_page(60 * 15)
 def about(request):
@@ -465,5 +463,4 @@ def about(request):
 
     response = render(request, 'albedo/about.html')
     response['Vary'] = 'Accept-Encoding'  # Укажите только нужные заголовки
->>>>>>> b8f773546cc19de0624892151324e48d10d9e397
     return response
