@@ -1,7 +1,11 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+<<<<<<< HEAD
 from .test_views import test_404
+=======
+from .views import about
+>>>>>>> b8f773546cc19de0624892151324e48d10d9e397
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -20,6 +24,7 @@ urlpatterns = [
     path('event/<int:event_id>/solution/', views.add_solution, name='add_solution'),
     path('file/<int:file_id>/download/', views.download_file, name='download_file'),
     path('file/<int:file_id>/preview/', views.preview_file, name='preview_file'),  # Новый маршрут для предпросмотра
+    path('about/', about, name='about'),
     
     # Админ функции
     path('users/', views.user_list, name='user_list'),

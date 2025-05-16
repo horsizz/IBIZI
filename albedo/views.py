@@ -24,6 +24,10 @@ from django.contrib.auth.tokens import default_token_generator
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 
 
 def custom_login(request):
@@ -366,6 +370,7 @@ def logout_view(request):
     return redirect('home')
 
 @login_required
+@cache_control(private=True, max_age=3600)
 def profile(request):
     """Отображение профиля текущего пользователя"""
     # Получаем решения текущего пользователя
@@ -446,7 +451,19 @@ def delete_solution(request, solution_id):
     messages.success(request, 'Решение успешно удалено.')
     return redirect('event_detail', event_id=event_id)
 
+<<<<<<< HEAD
 def custom_404_view(request, exception=None):
     """Кастомная страница 404"""
     response = render(request, 'albedo/404.html', status=404)
+=======
+@csrf_exempt
+@cache_page(60 * 15)
+def about(request):
+    # Отключаем сессию
+    if hasattr(request, 'session'):
+        del request.session
+
+    response = render(request, 'albedo/about.html')
+    response['Vary'] = 'Accept-Encoding'  # Укажите только нужные заголовки
+>>>>>>> b8f773546cc19de0624892151324e48d10d9e397
     return response
