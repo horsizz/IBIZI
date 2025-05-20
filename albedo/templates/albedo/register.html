@@ -25,12 +25,14 @@
                 {% csrf_token %}
                 <div style="margin-bottom: 25px;">
                     <label style="color: white; font-weight: 500; margin-bottom: 10px; display: block;">Имя пользователя</label>
-                    <input type="text" id="username" name="username" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
+                    <input type="text" id="username" name="username" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required autocomplete="off">
+                    <div id="username-error" style="color: #e74c3c; margin-top: 8px; font-size: 0.95em; display: none;"></div>
                 </div>
 
                 <div style="margin-bottom: 25px;">
                     <label style="color: white; font-weight: 500; margin-bottom: 10px; display: block;">Email</label>
                     <input type="email" id="email" name="email" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
+                    <div id="email-error" style="color: #e74c3c; margin-top: 8px; font-size: 0.95em; display: none;"></div>
                 </div>
 
                 <div style="margin-bottom: 25px; position: relative;">
@@ -87,4 +89,171 @@
         overflow-y: auto;
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.getElementById('username');
+    const usernameError = document.getElementById('username-error');
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('email-error');
+    let lastValue = '';
+    let lastEmail = '';
+
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    usernameInput.addEventListener('input', debounce(function() {
+        const username = usernameInput.value.trim();
+        if (!username) {
+            usernameError.style.display = 'none';
+            usernameError.textContent = '';
+            usernameInput.style.borderColor = '';
+            return;
+        }
+        if (username === lastValue) return;
+        lastValue = username;
+
+        fetch("/ajax/validate_username/?username=" + encodeURIComponent(username), {
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Network error', response.status, response.statusText);
+                    throw new Error('Network error');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('AJAX response:', data);
+                if (data.is_taken) {
+                    usernameError.textContent = 'Это имя пользователя уже занято.';
+                    usernameError.style.display = 'block';
+                    usernameInput.style.borderColor = '#e74c3c';
+                } else {
+                    usernameError.textContent = '';
+                    usernameError.style.display = 'none';
+                    usernameInput.style.borderColor = '';
+                }
+            })
+            .catch((err) => {
+                console.error('AJAX error:', err);
+                usernameError.textContent = 'Ошибка проверки имени пользователя.';
+                usernameError.style.display = 'block';
+                usernameInput.style.borderColor = '#e74c3c';
+            });
+    }, 400));
+
+    emailInput.addEventListener('input', debounce(function() {
+        const email = emailInput.value.trim();
+        if (!email) {
+            emailError.style.display = 'none';
+            emailError.textContent = '';
+            emailInput.style.borderColor = '';
+            return;
+        }
+        if (email === lastEmail) return;
+        lastEmail = email;
+
+        fetch("/ajax/validate_email/?email=" + encodeURIComponent(email), {
+            credentials: 'same-origin'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    console.error('Network error', response.status, response.statusText);
+                    throw new Error('Network error');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('AJAX email response:', data);
+                if (data.is_taken) {
+                    emailError.textContent = 'Этот email уже используется.';
+                    emailError.style.display = 'block';
+                    emailInput.style.borderColor = '#e74c3c';
+                } else {
+                    emailError.textContent = '';
+                    emailError.style.display = 'none';
+                    emailInput.style.borderColor = '';
+                }
+            })
+            .catch((err) => {
+                console.error('AJAX email error:', err);
+                emailError.textContent = 'Ошибка проверки email.';
+                emailError.style.display = 'block';
+                emailInput.style.borderColor = '#e74c3c';
+            });
+    }, 400));
+});
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Deferred-пример: Проверка username и email одновременно
+function checkUsernameDeferred(username) {
+    var dfd = $.Deferred();
+    $.get('/ajax/validate_username/', {username: username})
+        .done(function(data) {
+            dfd.resolve(data.is_taken);
+        })
+        .fail(function() {
+            dfd.reject('Ошибка проверки имени пользователя.');
+        });
+    return dfd.promise();
+}
+
+function checkEmailDeferred(email) {
+    var dfd = $.Deferred();
+    $.get('/ajax/validate_email/', {email: email})
+        .done(function(data) {
+            dfd.resolve(data.is_taken);
+        })
+        .fail(function() {
+            dfd.reject('Ошибка проверки email.');
+        });
+    return dfd.promise();
+}
+
+// Пример использования: при клике на кнопку регистрации
+$(function() {
+    $('form').on('submit', function(e) {
+        var username = $('#username').val().trim();
+        var email = $('#email').val().trim();
+        var usernameError = $('#username-error');
+        var emailError = $('#email-error');
+        // Сброс ошибок
+        usernameError.text('').hide();
+        emailError.text('').hide();
+
+        // Deferred: параллельная проверка
+        $.when(checkUsernameDeferred(username), checkEmailDeferred(email))
+            .done(function(isUsernameTaken, isEmailTaken) {
+                var hasError = false;
+                if (isUsernameTaken) {
+                    usernameError.text('Это имя пользователя уже занято.').show();
+                    $('#username').css('border-color', '#e74c3c');
+                    hasError = true;
+                }
+                if (isEmailTaken) {
+                    emailError.text('Этот email уже используется.').show();
+                    $('#email').css('border-color', '#e74c3c');
+                    hasError = true;
+                }
+                if (hasError) {
+                    e.preventDefault();
+                }
+            })
+            .fail(function(errorMsg) {
+                alert(errorMsg);
+                e.preventDefault();
+            });
+        // Не даём форме отправиться сразу, ждем проверки
+        e.preventDefault();
+    });
+});
+</script>
 {% endblock %}

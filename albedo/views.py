@@ -28,7 +28,11 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
+from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.views.decorators.http import require_GET
 
+User = get_user_model()
 
 def custom_login(request):
     """
@@ -461,3 +465,15 @@ def about(request):
     response = render(request, 'albedo/about.html')
     response['Vary'] = 'Accept-Encoding'  # Укажите только нужные заголовки
     return response
+
+@require_GET
+def validate_username(request):
+    username = request.GET.get('username', '').strip()
+    is_taken = User.objects.filter(username__iexact=username).exists()
+    return JsonResponse({'is_taken': is_taken})
+
+@require_GET
+def validate_email(request):
+    email = request.GET.get('email', '').strip()
+    is_taken = User.objects.filter(email__iexact=email).exists()
+    return JsonResponse({'is_taken': is_taken})

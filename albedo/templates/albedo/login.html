@@ -18,7 +18,8 @@
                 {% csrf_token %}
                 <div style="margin-bottom: 25px;">
                     <label style="color: white; font-weight: 500; margin-bottom: 10px; display: block;">Имя пользователя</label>
-                    <input type="text" name="username" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
+                    <input type="text" name="username" id="username" style="background-color: rgba(255,255,255,0.7); border-radius: 20px; border: 1px solid rgba(0,0,0,0.1); padding: 12px 20px; width: 100%;" required>
+                    <span id="username-message" style="color: #e74c3c; font-size: 0.95em; display: block; margin-top: 7px;"></span>
                 </div>
 
                 <div style="margin-bottom: 30px; position: relative;">
