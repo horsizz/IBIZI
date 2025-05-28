@@ -93,6 +93,9 @@ TEMPLATES = [
     },
 ]
 
+# Кастомные обработчики ошибок
+HANDLER404 = 'albedo.views.custom_404_view'
+
 WSGI_APPLICATION = 'config.wsgi.application'
 
 

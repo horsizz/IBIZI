@@ -20,6 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns  # Импорт для статических файлов
 
+# Непосредственно определяем кастомные обработчики ошибок
+handler404 = 'albedo.views.custom_404_view'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('albedo.urls')),  # Добавляем URLs приложения albedo
