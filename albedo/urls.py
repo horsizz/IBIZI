@@ -22,6 +22,8 @@ urlpatterns = [
     path('file/<int:file_id>/download/', views.download_file, name='download_file'),
     path('file/<int:file_id>/preview/', views.preview_file, name='preview_file'),  # Новый маршрут для предпросмотра
     path('about/', about, name='about'),
+    path('ajax/validate_username/', views.validate_username, name='validate_username'),
+    path('ajax/validate_email/', views.validate_email, name='validate_email'),
     
     # Админ функции
     path('users/', views.user_list, name='user_list'),
