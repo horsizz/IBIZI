@@ -25,6 +25,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from django.views.decorators.cache import cache_page
+from .amocrm_integration import create_amocrm_lead
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
@@ -126,6 +127,10 @@ def verify_email(request, uidb64, token):
 
         user.set_password(password)
         user.save()
+        
+        # Интеграция с amoCRM (ПР05)
+        create_amocrm_lead(user.username, user.email)
+        
         del request.session['user_data']
         del request.session['user_password']
         messages.success(request, 'Ваш email успешно подтвержден! Теперь вы можете войти в свой аккаунт.')
