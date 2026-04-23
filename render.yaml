@@ -9,5 +9,3 @@ services:
         value: 3.11.11
       - key: DEBUG
         value: "False"
-      - key: USE_SQLITE_FALLBACK
-        value: "True"
