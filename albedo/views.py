@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
+import logging
 from datetime import timedelta
 from .forms import UserRegistrationForm, EventForm, SolutionForm
 from .models import Event, Solution, File, User, LoginAttempt
@@ -18,12 +19,8 @@ from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 from django.contrib.auth.tokens import default_token_generator
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from django.views.decorators.cache import cache_page
 from .amocrm_integration import create_amocrm_lead
 from django.views.decorators.cache import cache_control
@@ -34,6 +31,7 @@ from django.contrib.auth import get_user_model
 from django.views.decorators.http import require_GET
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 def custom_login(request):
     """
@@ -94,22 +92,27 @@ EMAIL_HOST_PASSWORD = settings.EMAIL_HOST_PASSWORD  # пароль прилож�
 
 def send_verification_email(request, username, email, uid, token):
     subject = 'Подтверждение вашей почты'
-    current_site = request.get_host()
-    verification_link = f"http://{current_site}/verify-email/{uid}/{token}/"
+    scheme = 'https' if request.is_secure() or not settings.DEBUG else 'http'
+    verification_path = reverse('verify_email', args=[uid, token])
+    verification_link = f"{scheme}://{request.get_host()}{verification_path}"
     message = f"Здравствуйте, {username}!\n\nДля подтверждения вашего email перейдите по ссылке:\n{verification_link}\n\nЕсли вы не регистрировались, проигнорируйте это сообщение."
-    try:
-        msg = MIMEMultipart()
-        msg["From"] = EMAIL_HOST_USER
-        msg["To"] = email
-        msg["Subject"] = subject
-        msg.attach(MIMEText(message, "plain"))
 
-        server = smtplib.SMTP_SSL(EMAIL_HOST, EMAIL_PORT)
-        server.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
-        server.sendmail(EMAIL_HOST_USER, email, msg.as_string())
-        server.quit()
+    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+        logger.error('EMAIL_HOST_USER/EMAIL_HOST_PASSWORD are not configured')
+        return False
+
+    try:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        return True
     except Exception as e:
-        print("Ошибка при отправке письма:", e)
+        logger.exception('Ошибка при отправке письма подтверждения: %s', e)
+        return False
 
 def verify_email(request, uidb64, token):
     try:
@@ -156,7 +159,12 @@ def register(request):
             request.session['user_data'] = user_data
             request.session['user_password'] = password
 
-            send_verification_email(request, user_data['username'], user_data['email'], uid, token)
+            email_sent = send_verification_email(request, user_data['username'], user_data['email'], uid, token)
+            if not email_sent:
+                request.session.pop('user_data', None)
+                request.session.pop('user_password', None)
+                messages.error(request, 'Не удалось отправить письмо подтверждения. Проверьте настройки почты и попробуйте снова.')
+                return render(request, 'albedo/register.html', {'form': form})
 
             messages.success(request, 'Регистрация почти завершена! Проверьте свою почту для подтверждения.')
             #user = form.save(commit=False)
