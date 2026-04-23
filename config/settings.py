@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'albedo',  # РґРѕР±Р°РІР»СЏРµРј РЅР°С€Рµ РїСЂРёР»РѕР¶РµРЅРёРµ
-    'cloudinary_storage',  # Cloudinary РґР»СЏ С…СЂР°РЅРµРЅРёСЏ С„Р°Р№Р»РѕРІ
-    'cloudinary',  # Cloudinary РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ РјРµРґРёР°
+    'albedo',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 CACHES = {
@@ -146,10 +146,8 @@ USE_I18N = True
 USE_TZ = True
 
 # amoCRM Settings
-AMOCRM_SUBDOMAIN = 'buqame'  
+AMOCRM_SUBDOMAIN = 'buqame'
 AMOCRM_TOKEN = os.environ.get('AMOCRM_TOKEN', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjZhYmI1YmFkMzNkZGRmNmM3NDg0M2IyNWNhMGY4ZTViNmIxYmI4ODlhZTE2MzRmMjk0NTBjMGYzMzY4ZDJiZmJlY2RiMDUxNTY3ZjBmZjk3In0.eyJhdWQiOiJmNDQ1MWVmNS0wZTM5LTRlYmItYjViZS00OTQyYjAxNDUwOWYiLCJqdGkiOiI2YWJiNWJhZDMzZGRkZjZjNzQ4NDNiMjVjYTBmOGU1YjZiMWJiODg5YWUxNjM0ZjI5NDUwYzBmMzM2OGQyYmZiZWNkYjA1MTU2N2YwZmY5NyIsImlhdCI6MTc3NjkzNTg5MywibmJmIjoxNzc2OTM1ODkzLCJleHAiOjE3NzcwMjIyOTMsInN1YiI6IjEzNzQ2NDgyIiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMzMDE3NjY2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiY2FlYjc3NjMtYWQzNi00MzhkLWJkY2ItZWFkODNlZWFhNjE1IiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.TMpOfnJgSDkDUKc3HfD2hDAY36AJ4gGdPSCeZrsj1aCazQsGr0CRJtr2Fiflo9u981IH0TvVzoK-KQQ1UB5Ri7lSpqWWCCIZpmwqhwSj7Koos0Dm4XcuEC21YxExBi8EH0mfS96Mr098qkHTAJ5ZCLfhPdYJtuFUOe-2zmGtfT4-0hKjdGLMf9BY0JzWyudRBK_sqBAaLVc3qUuggWuFdjDJDM0ZhVqvr3RYhBP8EQI3FXJjsE5l9DnmofpYQlpZE4hu0rY6wVHF-Jm7cKofVBJpNs4Ipmq6L_L38UaUqVSj0sYEj8KWDW4jWytetX9a0bWFYdp1uDTzYq7OKN_dMQ')
-AMOCRM_SECRET_TOKEN = os.environ.get('AMOCRM_SECRET_TOKEN', 'fRcGvRrqP5lEOS4FAAzSvnVP25hpS1mNn9rjpOySLbpJSHtKgimPmoDEZukxaHEc')
-AMOCRM_INTEGRATION_ID = 'f4451ef5-0e39-4ebb-b5be-4942b014509f'
 AMOCRM_SECRET_TOKEN = os.environ.get('AMOCRM_SECRET_TOKEN', 'fRcGvRrqP5lEOS4FAAzSvnVP25hpS1mNn9rjpOySLbpJSHtKgimPmoDEZukxaHEc')
 AMOCRM_INTEGRATION_ID = 'f4451ef5-0e39-4ebb-b5be-4942b014509f'
 
@@ -216,8 +214,8 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # РСЃРїРѕР»СЊР·СѓРµРј WhiteNoise РґР»СЏ СЃР¶Р°С‚РёСЏ Рё С…СЌС€РёСЂРѕРІР°РЅРёСЏ СЃС‚Р°С‚РёС‡РµСЃРєРёС… С„Р°Р№Р»РѕРІ РІ РїСЂРѕРґР°РєС€РЅ
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    # Используем WhiteNoise для сжатия и кэширования статических файлов в продакшн
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 else:
     # Р”Р»СЏ СЂРµР¶РёРјР° СЂР°Р·СЂР°Р±РѕС‚РєРё РёСЃРїРѕР»СЊР·СѓРµРј РѕР±С‹С‡РЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
