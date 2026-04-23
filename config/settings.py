@@ -30,9 +30,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-1amkr^tiy*k_$#!i75mt15-0*sospg8wi(n&o31$f(3#y2ko(y')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['ibizi.pythonanywhere.com', '127.0.0.1', 'localhost', '.onrender.com']
+ALLOWED_HOSTS = ['ibizi.pythonanywhere.com', '127.0.0.1', 'localhost', '.onrender.com', 'ibizi.onrender.com']
 
 
 # Application definition
