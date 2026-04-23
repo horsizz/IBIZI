@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import resolve
+from django.urls import Resolver404
 import re
 
 class UserBlockStatusMiddleware:
@@ -11,7 +12,10 @@ class UserBlockStatusMiddleware:
         # Проверяем статус пользователя только если он аутентифицирован
         if request.user.is_authenticated and not request.user.active:
             # Получаем имя текущего URL
-            current_url_name = resolve(request.path_info).url_name
+            try:
+                current_url_name = resolve(request.path_info).url_name
+            except Resolver404:
+                return self.get_response(request)
             
             # Список URL, которые доступны даже заблокированным пользователям
             allowed_urls = ['logout', 'profile', 'home', 'event_list', 'event_detail']

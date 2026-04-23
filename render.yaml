@@ -3,7 +3,7 @@ services:
     name: ibizi
     env: python
     buildCommand: bash build.sh
-    startCommand: gunicorn config.wsgi
+    startCommand: bash -c "python manage.py migrate --noinput; gunicorn config.wsgi:application --log-file - --access-logfile -"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
