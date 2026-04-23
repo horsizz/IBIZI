@@ -256,6 +256,17 @@ def create_event(request):
             event.file = file_obj
             event.save()
             
+            # Интеграция с amoCRM (ПР05): Добавляем контакт при создании ивента
+            try:
+                print(f"--- [DEBUG] Вызов amoCRM для пользователя {request.user.email} (создание ивента) ---")
+                create_amocrm_lead(
+                    user_name=request.user.username,
+                    user_email=request.user.email,
+                    event_title=event.title
+                )
+            except Exception as e:
+                print(f"--- [DEBUG ERROR] Ошибка вызова amoCRM: {e} ---")
+
             messages.success(request, 'Событие успешно создано!')
             return redirect('event_detail', event_id=event.id)
     else:
@@ -367,6 +378,22 @@ def add_solution(request, event_id):
                 solution.file = file_obj
                 
             solution.save()
+
+            # Интеграция с amoCRM (ПР05)
+            try:
+                solution_data = {
+                    'created_at': solution.created_at,
+                    'file_url': solution.file.cloudinary_url if solution.file and hasattr(solution.file, 'cloudinary_url') else None
+                }
+                create_amocrm_lead(
+                    user_name=request.user.username,
+                    user_email=request.user.email,
+                    event_title=event.title,
+                    solution_data=solution_data
+                )
+            except Exception as e:
+                print(f"--- amoCRM: Error calling create_amocrm_lead in view: {e}")
+
             return redirect('event_detail', event_id=event.id)
     else:
         form = SolutionForm()
