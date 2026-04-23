@@ -110,8 +110,9 @@ DATABASES = {
 }
 
 # РќР°СЃС‚СЂРѕР№РєР° РґР»СЏ Render.com: РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ PostgreSQL РІ РїСЂРѕРґР°РєС€РЅ-СЃСЂРµРґРµ
+USE_SQLITE_FALLBACK = os.environ.get('USE_SQLITE_FALLBACK', 'False') == 'True'
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
+if DATABASE_URL and not USE_SQLITE_FALLBACK:
     DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
 
 
