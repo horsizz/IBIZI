@@ -62,16 +62,16 @@ CACHES = {
 MIDDLEWARE = [
     #'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Р”РѕР±Р°РІР»СЏРµРј WhiteNoise РґР»СЏ РѕР±СЂР°Р±РѕС‚РєРё СЃС‚Р°С‚РёС‡РµСЃРєРёС… С„Р°Р№Р»РѕРІ
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     #'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'albedo.middleware.UserBlockStatusMiddleware',  # Middleware РґР»СЏ Р±Р»РѕРєРёСЂРѕРІРєРё РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№Р»СЊР·РѕРІР°С‚РµР»РµР№
-    'albedo.middleware.SecurityHeadersMiddleware',  # РќРѕРІС‹Р№ middleware РґР»СЏ Р·Р°РіРѕР»РѕРІРєРѕРІ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё
-    'albedo.middleware.PathTraversalProtectionMiddleware', # Р—Р°С‰РёС‚Р° РѕС‚ path traversal
+    'albedo.middleware.UserBlockStatusMiddleware', 
+    'albedo.middleware.SecurityHeadersMiddleware', 
+    'albedo.middleware.PathTraversalProtectionMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
@@ -151,6 +151,9 @@ AMOCRM_SUBDOMAIN = 'buqame'
 AMOCRM_TOKEN = os.environ.get('AMOCRM_TOKEN', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjZhYmI1YmFkMzNkZGRmNmM3NDg0M2IyNWNhMGY4ZTViNmIxYmI4ODlhZTE2MzRmMjk0NTBjMGYzMzY4ZDJiZmJlY2RiMDUxNTY3ZjBmZjk3In0.eyJhdWQiOiJmNDQ1MWVmNS0wZTM5LTRlYmItYjViZS00OTQyYjAxNDUwOWYiLCJqdGkiOiI2YWJiNWJhZDMzZGRkZjZjNzQ4NDNiMjVjYTBmOGU1YjZiMWJiODg5YWUxNjM0ZjI5NDUwYzBmMzM2OGQyYmZiZWNkYjA1MTU2N2YwZmY5NyIsImlhdCI6MTc3NjkzNTg5MywibmJmIjoxNzc2OTM1ODkzLCJleHAiOjE3NzcwMjIyOTMsInN1YiI6IjEzNzQ2NDgyIiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMzMDE3NjY2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsImZpbGVzX2RlbGV0ZSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiY2FlYjc3NjMtYWQzNi00MzhkLWJkY2ItZWFkODNlZWFhNjE1IiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.TMpOfnJgSDkDUKc3HfD2hDAY36AJ4gGdPSCeZrsj1aCazQsGr0CRJtr2Fiflo9u981IH0TvVzoK-KQQ1UB5Ri7lSpqWWCCIZpmwqhwSj7Koos0Dm4XcuEC21YxExBi8EH0mfS96Mr098qkHTAJ5ZCLfhPdYJtuFUOe-2zmGtfT4-0hKjdGLMf9BY0JzWyudRBK_sqBAaLVc3qUuggWuFdjDJDM0ZhVqvr3RYhBP8EQI3FXJjsE5l9DnmofpYQlpZE4hu0rY6wVHF-Jm7cKofVBJpNs4Ipmq6L_L38UaUqVSj0sYEj8KWDW4jWytetX9a0bWFYdp1uDTzYq7OKN_dMQ')
 AMOCRM_SECRET_TOKEN = os.environ.get('AMOCRM_SECRET_TOKEN', 'fRcGvRrqP5lEOS4FAAzSvnVP25hpS1mNn9rjpOySLbpJSHtKgimPmoDEZukxaHEc')
 AMOCRM_INTEGRATION_ID = 'f4451ef5-0e39-4ebb-b5be-4942b014509f'
+# OAuth refresh credentials (set these in environment on Render)
+AMOCRM_CLIENT_SECRET = os.environ.get('AMOCRM_CLIENT_SECRET')
+AMOCRM_REFRESH_TOKEN = os.environ.get('AMOCRM_REFRESH_TOKEN')
 
 
 # Static files (CSS, JavaScript, Images)
