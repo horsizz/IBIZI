@@ -58,6 +58,7 @@ CACHES = {
 
 MIDDLEWARE = [
     #'django.middleware.cache.UpdateCacheMiddleware',
+    'albedo.middleware.DatabaseQuotaMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',

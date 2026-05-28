@@ -1,8 +1,27 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.urls import resolve
 from django.urls import Resolver404
 import re
+import logging
+from django.db import OperationalError
+
+logger = logging.getLogger(__name__)
+
+class DatabaseQuotaMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        try:
+            return self.get_response(request)
+        except OperationalError as e:
+            # Проверяем на ошибку квоты Neon/PostgreSQL
+            if "quota exceeded" in str(e).lower() or "limit" in str(e).lower():
+                logger.warning(f"Database quota/limit error: {e}")
+                return render(request, 'albedo/quota_exceeded.html', status=503)
+            # Для других ошибок базы данных пробрасываем дальше или тоже обрабатываем
+            raise e
 
 class UserBlockStatusMiddleware:
     def __init__(self, get_response):

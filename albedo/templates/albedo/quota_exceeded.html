@@ -1,0 +1,13 @@
+{% extends "albedo/base.html" %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="alert alert-warning" role="alert">
+        <h1 class="display-4">Сервис временно недоступен</h1>
+        <p class="lead">Извините, в данный момент исчерпан лимит бесплатных вычислительных ресурсов (database quota exceeded).</p>
+        <hr>
+        <p>Мы работаем над решением этой проблемы. Попробуйте обновить страницу позже.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary mt-3">Вернуться на главную</a>
+    </div>
+</div>
+{% endblock %}
