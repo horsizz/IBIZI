@@ -11,10 +11,7 @@ from .models import Event, Solution, File, User, LoginAttempt
 import os
 from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
-from django.utils.text import slugify
 from .utils import secure_file_upload
-from django.db.models import Prefetch
-from django.db import models
 from django.core.mail import send_mail
 from django.utils.http import urlsafe_base64_encode
 from django.utils.http import urlsafe_base64_decode
@@ -25,7 +22,6 @@ from django.views.decorators.cache import cache_page
 from .amocrm_integration import create_amocrm_lead
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.cache import never_cache
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.http import require_GET

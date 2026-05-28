@@ -1,13 +1,11 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.password_validation import validate_password
-from .models import Event, Solution, User, File
+from .models import Event, Solution, User
 from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils import timezone
 import os
 import requests
-import time
 
 def validate_file_viruses(value):
     """

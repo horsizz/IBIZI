@@ -3,10 +3,6 @@ import re
 import mimetypes
 import hashlib
 import uuid
-import boto3
-from django.conf import settings
-import inspect
-from django.db import connection
 
 # Определяем безопасные расширения
 ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.txt', '.zip']
