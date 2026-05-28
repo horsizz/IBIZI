@@ -2,6 +2,7 @@
 from django.conf import settings
 import logging
 import time
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,29 @@ def create_amocrm_lead(user_name, user_email, event_title=None, solution_data=No
         """Попытаться обновить access token с помощью refresh token, если он есть в settings.
         Возвращает новый access_token или None.
         """
+        # Try to populate missing AMOCRM_* settings from a local .env file (fallback)
+        try:
+            base = getattr(settings, 'BASE_DIR', None)
+            if base:
+                env_path = os.path.join(str(base), '.env')
+                if os.path.exists(env_path):
+                    with open(env_path, encoding='utf-8') as f:
+                        for line in f:
+                            line = line.strip()
+                            if not line or line.startswith('#'):
+                                continue
+                            if '=' in line:
+                                k, v = line.split('=', 1)
+                                k = k.strip(); v = v.strip()
+                                if k in ('AMOCRM_REFRESH_TOKEN', 'AMOCRM_CLIENT_SECRET', 'AMOCRM_TOKEN'):
+                                    if not getattr(settings, k, None):
+                                        try:
+                                            setattr(settings, k, v)
+                                        except Exception:
+                                            pass
+        except Exception:
+            pass
+
         refresh_token = getattr(settings, 'AMOCRM_REFRESH_TOKEN', None)
         client_id = getattr(settings, 'AMOCRM_INTEGRATION_ID', None)
         client_secret = getattr(settings, 'AMOCRM_CLIENT_SECRET', None)
@@ -65,6 +89,7 @@ def create_amocrm_lead(user_name, user_email, event_title=None, solution_data=No
         try:
             resp = requests.request(method, url, headers=headers, timeout=10, **kwargs)
         except Exception as e:
+            logger.exception('amoCRM request exception: %s', e)
             raise
 
         if resp.status_code == 401:
@@ -77,8 +102,18 @@ def create_amocrm_lead(user_name, user_email, event_title=None, solution_data=No
         return resp
 
 
-    # 1. Поиск существующего контакта по email, чтобы не плодить дубли
+    
     contact_id = None
+    # Ensure we have a valid access token before making the first request.
+    # If there is no token but refresh credentials exist, try to refresh now.
+    if not token:
+        refreshed = refresh_access_token()
+        if refreshed:
+            token = refreshed
+            headers['Authorization'] = f"Bearer {token}"
+        else:
+            logger.error('amoCRM access token missing and cannot refresh; skipping API calls')
+            return False
     try:
         search_res = send_request('GET', f"{base_url}/contacts?query={user_email}", headers=headers)
         if search_res.status_code == 200:
