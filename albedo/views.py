@@ -195,7 +195,6 @@ def event_detail(request, event_id):
     # Проверяем, не истек ли срок сдачи и обновляем статус при необходимости
     event.update_status_if_expired()
     
-    # Изменяем запрос, чтобы не пытаться получить cloudinary_url
     # Используем select_related для оптимизации запросов
     event = Event.objects.select_related('user').select_related('file').get(id=event_id)
     
@@ -391,7 +390,7 @@ def add_solution(request, event_id):
             try:
                 solution_data = {
                     'created_at': solution.created_at,
-                    'file_url': solution.file.cloudinary_url if solution.file and hasattr(solution.file, 'cloudinary_url') else None
+                    'file_url': request.build_absolute_uri(reverse('download_file', args=[solution.file.id])) if solution.file else None
                 }
                 create_amocrm_lead(
                     user_name=request.user.username,

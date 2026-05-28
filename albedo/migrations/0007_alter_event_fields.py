@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('albedo', '0004_alter_event_options_alter_file_options_and_more'),
+        ('albedo', '0006_loginattempt'),
     ]
 
     operations = [

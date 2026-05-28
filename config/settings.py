@@ -16,7 +16,6 @@ import os
 import dj_database_url
 from dotenv import load_dotenv
 
-# Р—Р°РіСЂСѓР¶Р°РµРј РїРµСЂРµРјРµРЅРЅС‹Рµ РѕРєСЂСѓР¶РµРЅРёСЏ РёР· .env С„Р°Р№Р»Р°
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -45,8 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'albedo',
-    'cloudinary_storage',
-    'cloudinary',
 ]
 
 CACHES = {
@@ -56,8 +53,8 @@ CACHES = {
     }
 }
 
-#CACHE_MIDDLEWARE_SECONDS = 900  # 15 РјРёРЅСѓС‚
-#CACHE_MIDDLEWARE_KEY_PREFIX = ''  # Р”РѕР±Р°РІСЊС‚Рµ РїСЂРµС„РёРєСЃ, РµСЃР»Рё РЅСѓР¶РЅРѕ
+#CACHE_MIDDLEWARE_SECONDS = 900  
+#CACHE_MIDDLEWARE_KEY_PREFIX = '' 
 
 MIDDLEWARE = [
     #'django.middleware.cache.UpdateCacheMiddleware',
@@ -93,7 +90,6 @@ TEMPLATES = [
     },
 ]
 
-# РљР°СЃС‚РѕРјРЅС‹Рµ РѕР±СЂР°Р±РѕС‚С‡РёРєРё РѕС€РёР±РѕРє
 HANDLER404 = 'albedo.views.custom_404_view'
 
 WSGI_APPLICATION = 'config.wsgi.application'
@@ -102,18 +98,17 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get('DATABASE_URL'):
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600)
     }
-}
-
-# РќР°СЃС‚СЂРѕР№РєР° РґР»СЏ Render.com: РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ PostgreSQL РІ РїСЂРѕРґР°РєС€РЅ-СЃСЂРµРґРµ
-USE_SQLITE_FALLBACK = os.environ.get('USE_SQLITE_FALLBACK', 'False') == 'True'
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL and not USE_SQLITE_FALLBACK:
-    DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -224,56 +219,28 @@ MESSAGE_TAGS = {
 }
 
 # Authentication settings
-LOGIN_REDIRECT_URL = 'profile'  # URL РґР»СЏ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ РІС…РѕРґР°
-LOGIN_URL = 'login'  # URL РґР»СЏ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ, РµСЃР»Рё С‚СЂРµР±СѓРµС‚СЃСЏ Р°СѓС‚РµРЅС‚РёС„РёРєР°С†РёСЏ
+LOGIN_REDIRECT_URL = 'profile' 
+LOGIN_URL = 'login' 
 
 
-LOGOUT_REDIRECT_URL = 'home'  # URL РґР»СЏ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ РїРѕСЃР»Рµ РІС‹С…РѕРґР°# File upload security settings
+LOGOUT_REDIRECT_URL = 'home' 
 ALLOWED_UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.zip']
 MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 
-# Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
-SESSION_COOKIE_SECURE = True  # Р’ production РёР·РјРµРЅРёС‚СЊ РЅР° True
-CSRF_COOKIE_SECURE = True  # Р’ production РёР·РјРµРЅРёС‚СЊ РЅР° True
+SESSION_COOKIE_SECURE = True 
+CSRF_COOKIE_SECURE = True 
 
-# РќР°СЃС‚СЂРѕР№РєРё РґР»СЏ СЃС‚Р°С‚РёС‡РµСЃРєРёС… С„Р°Р№Р»РѕРІ
 if not DEBUG:
-    # Р’РєР»СЋС‡Р°РµРј HTTPS-РЅР°СЃС‚СЂРѕР№РєРё РґР»СЏ РїСЂРѕРґР°РєС€РЅ-СЃСЂРµРґС‹
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     
-    # Используем WhiteNoise для сжатия и кэширования статических файлов в продакшн
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 else:
-    # Р”Р»СЏ СЂРµР¶РёРјР° СЂР°Р·СЂР°Р±РѕС‚РєРё РёСЃРїРѕР»СЊР·СѓРµРј РѕР±С‹С‡РЅРѕРµ С…СЂР°РЅРёР»РёС‰Рµ
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
-# РќР°СЃС‚СЂРѕР№РєРё РґР»СЏ С…СЂР°РЅРµРЅРёСЏ С„Р°Р№Р»РѕРІ
-USE_CLOUDINARY = False  # РћС‚РєР»СЋС‡Р°РµРј Cloudinary
-
-# Cloudinary РЅР°СЃС‚СЂРѕР№РєРё (СЃРѕС…СЂР°РЅСЏРµРј, РµСЃР»Рё РїРѕРЅР°РґРѕР±СЏС‚СЃСЏ РїРѕР·Р¶Рµ)
-if USE_CLOUDINARY:
-    import cloudinary
-    import cloudinary.uploader
-    import cloudinary.api
-    
-    cloudinary.config(
-        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-        api_key=os.environ.get('CLOUDINARY_API_KEY', ''),
-        api_secret=os.environ.get('CLOUDINARY_API_SECRET', ''),
-        secure=True
-    )
-    
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-        'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-    }
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
