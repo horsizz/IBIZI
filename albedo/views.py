@@ -9,6 +9,7 @@ from datetime import timedelta
 from .forms import UserRegistrationForm, EventForm, SolutionForm
 from .models import Event, Solution, File, User, LoginAttempt
 import os
+import threading
 from django.conf import settings
 from django.http import FileResponse, HttpResponseNotFound
 from .utils import secure_file_upload
@@ -97,18 +98,22 @@ def send_verification_email(request, username, email, uid, token):
         logger.error('EMAIL_HOST_USER/EMAIL_HOST_PASSWORD are not configured')
         return False
 
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-        return True
-    except Exception as e:
-        logger.exception('Ошибка при отправке письма подтверждения: %s', e)
-        return False
+    def email_worker():
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            logger.info(f"Письмо успешно отправлено на {email}")
+        except Exception as e:
+            logger.exception('Ошибка при отправке письма подтверждения: %s', e)
+
+    threading.Thread(target=email_worker, daemon=True).start()
+    return True  
+
 
 def verify_email(request, uidb64, token):
     try:
