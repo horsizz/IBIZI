@@ -81,10 +81,6 @@ def home(request):
     events = Event.objects.filter(user__active=True).order_by('-status', '-created_at')
     return render(request, 'albedo/home.html', {'events': events})
 
-EMAIL_HOST = "smtp.mail.ru"
-EMAIL_PORT = 465
-EMAIL_HOST_USER = settings.EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = settings.EMAIL_HOST_PASSWORD  # пароль приложения из настроек Mail.ru
 
 
 def send_verification_email(request, username, email, uid, token):
@@ -94,7 +90,7 @@ def send_verification_email(request, username, email, uid, token):
     verification_link = f"{scheme}://{request.get_host()}{verification_path}"
     message = f"Здравствуйте, {username}!\n\nДля подтверждения вашего email перейдите по ссылке:\n{verification_link}\n\nЕсли вы не регистрировались, проигнорируйте это сообщение."
 
-    if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
         logger.error('EMAIL_HOST_USER/EMAIL_HOST_PASSWORD are not configured')
         return False
 
