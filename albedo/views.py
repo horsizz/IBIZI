@@ -143,33 +143,9 @@ def register(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            # Извлекаем данные формы
-            user_data = form.cleaned_data.copy()
-            password = user_data.pop('password1')  # Пароль храним отдельно
-            user_data.pop('password2')  # Удаляем второй пароль, он не нужен
-
-            # Генерация UID и токена
-            uid = urlsafe_base64_encode(force_bytes(form.cleaned_data['username']))
-            token = default_token_generator.make_token(User(username=form.cleaned_data['username'], email=form.cleaned_data['email']))
-
-            # Сохраняем данные формы в сессии (без сохранения в БД)
-            request.session['user_data'] = user_data
-            request.session['user_password'] = password
-
-            email_sent = send_verification_email(request, user_data['username'], user_data['email'], uid, token)
-            if not email_sent:
-                request.session.pop('user_data', None)
-                request.session.pop('user_password', None)
-                messages.error(request, 'Не удалось отправить письмо подтверждения. Проверьте настройки почты и попробуйте снова.')
-                return render(request, 'albedo/register.html', {'form': form})
-
-            messages.success(request, 'Регистрация почти завершена! Проверьте свою почту для подтверждения.')
-            #user = form.save(commit=False)
-            #user.is_active = False
-            #user.save()
-            #send_verification_email()
-            #login(request, user)
-            #messages.success(request, 'Регистрация успешно завершена!')
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Регистрация успешно завершена!')
             return redirect('event_list')
         else:
             # Print form errors to console for debugging
